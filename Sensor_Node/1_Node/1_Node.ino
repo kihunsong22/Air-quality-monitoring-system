@@ -19,13 +19,17 @@
 #define SBW 125E3 // Signal Bandwidth: 7.83E, 10.4E3, 15.6E3, 20.8E3, 41.7E3, 62.5E3, 125.E3, 250E3, default 125E3
 #define CR 5 // Coding Rate: 5~8, default 5
 
-const uint8_t DEBUG = 0;  // 0: normal state, 1: radom/fixed sensor values
-const uint8_t GP2Y10 = 19;
+#define DEBUG 0  // 0: normal state, 1: radom/fixed sensor values
+const uint8_t GP2Y10 = 34;
+const uint8_t dipPin1 = 15;
+const uint8_t dipPin2 = 2;  // LED pin - should be replaced
+const uint8_t dipPin3 = 4;
+const uint8_t dipPin4 = 0;  // CLX1 pin - should be replaced
 
 BME280I2C::Settings settings(
-	BME280::OSR_X16,  // temp oversampling
-	BME280::OSR_X16,  // humidity oversampling
-	BME280::OSR_X16,  // pressure oversampling
+	BME280::OSR_X1,  // temp oversampling
+	BME280::OSR_X1,  // humidity oversampling
+	BME280::OSR_X1,  // pressure oversampling
 	BME280::Mode_Forced,  // operation mode
 	BME280::StandbyTime_1000ms,  // standby time
 	BME280::Filter_2,  // filter
@@ -44,7 +48,7 @@ uint8_t dip1, dip2, dip3, dip4, NodeNum = 0;
 void setup() {
 	delay(200);
 	Serial.begin(115200);
-	Serial.println("\n\nDevice 1 - LoRa Node");
+	Serial.println("\n\nDevice - LoRa Node");
 	if(DEBUG == 1){
 		Serial.println("#########################################");
 		Serial.println("#  Debug mode on - random sensor values  #");
@@ -55,15 +59,14 @@ void setup() {
 
   pinMode(GP2Y10, INPUT);
 	pinMode(16, OUTPUT);  // OLED reset pin
-	pinMode(2, OUTPUT);  //LED
 	digitalWrite(16, LOW);    // set GPIO16 low to reset OLED
 	delay(50);
 	digitalWrite(16, HIGH); // while OLED is running, must set GPIO16 in high
 
-	pinMode(0, INPUT_PULLUP);
-	pinMode(4, INPUT_PULLUP);
-	pinMode(2, INPUT_PULLUP);
-	pinMode(15, INPUT_PULLUP);
+	pinMode(dipPin1, INPUT);  // CLX1 pin, seems to have special function - 2.72V on LOW
+	pinMode(dipPin2, INPUT_PULLDOWN);  //all connected to 3V3
+	pinMode(dipPin3, INPUT_PULLDOWN);
+	pinMode(dipPin4, INPUT_PULLDOWN);
 
 	SPI.begin(SCK,MISO,MOSI,SS);
 	LoRa.setPins(SS,RST,DI0);
@@ -82,9 +85,13 @@ void setup() {
 	LoRa.receive();
 	
 	if(DEBUG == 0){
+		uint8_t bmeInitCount = 0;
 		while(!bme.begin()){
 			Serial.println("BEM280 Not Found.");
 			delay(1000);
+
+			bmeInitCount++;
+			if(bmeInitCount>4) {	break;	}
 		}
 		switch(bme.chipModel()){
 			case BME280::ChipModel_BME280:
@@ -96,22 +103,25 @@ void setup() {
 			default:
 				Serial.println("BME280 Initialization FAILED!");
 		}
-		Serial.println("BME280 Initialized");
 	}
 
 	display.init();
 	display.flipScreenVertically();
 
-	dip1 = digitalRead(0) * 1;
-	dip2 = digitalRead(4) * 2;
-	dip3 = digitalRead(2) * 4;
-	dip4 = digitalRead(15) * 8;
-	
-	NodeNum = dip1 + dip2 + dip3 + dip4 + 1;
+	dip1 = digitalRead(dipPin1);  // read node number from external DIP switch
+	dip2 = digitalRead(dipPin2);
+	dip3 = digitalRead(dipPin3);
+	dip4 = analogRead(dipPin4)>4000?1:0;  // designated pin CLX1: seems to have special function, disconnect before upload
+	NodeNum = dip1 + dip2*2 + dip3*4 + dip4*8;
+
+	Serial.print("\nDIP1: "); Serial.println(dip1);
+	Serial.print("DIP2: "); Serial.println(dip2);
+	Serial.print("DIP3: "); Serial.println(dip3);
+	Serial.print("DIP4: "); Serial.println(dip4);
 	Serial.print("\nNodeNum:"); Serial.println(NodeNum);
 
   Serial.println("Init complete\n");
-	delay(800);
+	delay(1200);
 }
 
 String packet = "";
@@ -119,8 +129,15 @@ float bmetemp(NAN), bmehum(NAN), bmepres(NAN);
 float dust = 0.0;
 
 void loop() {
+	dip1 = digitalRead(dipPin1);  // check for update on DIP switch
+	dip2 = digitalRead(dipPin2);
+	dip3 = digitalRead(dipPin3);
+	dip4 = analogRead(dipPin4)>4000?1:0;  // designated pin CLX1: seems to have special function, pull low before upload
+	NodeNum = dip1 + dip2*2 + dip3*4 + dip4*8;
+
 	if(DEBUG == 0){
   	bme.read(bmepres, bmetemp, bmehum, tempUnit, presUnit);
+		Serial.print("\nNodeNum:"); Serial.println(NodeNum);
 		Serial.print("Temp: "); Serial.print(bmetemp); Serial.print("°"+ String(tempUnit==BME280::TempUnit_Celsius?"C":"F"));
 		Serial.print("    Humidity: "); Serial.print(bmehum); Serial.print("% RH");
 		Serial.print("    Pressure: "); Serial.print(bmepres); Serial.println("Pa");
