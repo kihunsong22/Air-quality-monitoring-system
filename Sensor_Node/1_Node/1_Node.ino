@@ -14,12 +14,12 @@
 #define DI0     26   // GPIO26 -- SX1278's IRQ(Interrupt Request)
 
 #define BAND  868E6  // 433E6, 868E6, 915E6
-#define TXPOW 18 // 2~20 -> PA_OUTPUT_RF0_PIN, 0~14-> PA_OUTPUT_BOOST_PIN
+#define TXPOW 20 // 2~20 -> PA_OUTPUT_RF0_PIN, 0~14-> PA_OUTPUT_BOOST_PIN
 #define SF 7 // Spreading Factor: 6~12, default 7
 #define SBW 125E3 // Signal Bandwidth: 7.83E, 10.4E3, 15.6E3, 20.8E3, 41.7E3, 62.5E3, 125.E3, 250E3, default 125E3
 #define CR 5 // Coding Rate: 5~8, default 5
 
-#define DEBUG 0  // 0: normal state, 1: radom/fixed sensor values
+#define DEBUG 0  // 0: normal state, 1: radom sensor values
 const uint8_t GP2Y10 = 34;
 const uint8_t dipPin1 = 15;
 const uint8_t dipPin2 = 2;  // LED pin - should be replaced
@@ -27,9 +27,9 @@ const uint8_t dipPin3 = 4;
 const uint8_t dipPin4 = 0;  // CLX1 pin - should be replaced
 
 BME280I2C::Settings settings(
-	BME280::OSR_X1,  // temp oversampling
-	BME280::OSR_X1,  // humidity oversampling
-	BME280::OSR_X1,  // pressure oversampling
+	BME280::OSR_X16,  // temp oversampling
+	BME280::OSR_X16,  // humidity oversampling
+	BME280::OSR_X16,  // pressure oversampling
 	BME280::Mode_Forced,  // operation mode
 	BME280::StandbyTime_1000ms,  // standby time
 	BME280::Filter_2,  // filter
@@ -46,9 +46,9 @@ BME280I2C bme(settings);
 uint8_t dip1, dip2, dip3, dip4, NodeNum = 0;
 
 void setup() {
-	delay(200);
+	delay(2500);
 	Serial.begin(115200);
-	Serial.println("\n\nDevice - LoRa Node");
+	Serial.println("\n\nDevice - LoRa Sensor Node");
 	if(DEBUG == 1){
 		Serial.println("#########################################");
 		Serial.println("#  Debug mode on - random sensor values  #");
@@ -64,8 +64,8 @@ void setup() {
 	digitalWrite(16, HIGH); // while OLED is running, must set GPIO16 in high
 
 	pinMode(dipPin1, INPUT);  // CLX1 pin, seems to have special function - 2.72V on LOW
-	pinMode(dipPin2, INPUT_PULLDOWN);  //all connected to 3V3
-	pinMode(dipPin3, INPUT_PULLDOWN);
+	pinMode(dipPin2, INPUT_PULLDOWN);  // also works as LED pin
+	pinMode(dipPin3, INPUT_PULLDOWN);  //all connected to 3V3
 	pinMode(dipPin4, INPUT_PULLDOWN);
 
 	SPI.begin(SCK,MISO,MOSI,SS);
@@ -144,17 +144,17 @@ void loop() {
 
 		// printBME280Data(&Serial);
 		dust = pulse2ugm3(pulseIn(GP2Y10, LOW, 20000));
-  	Serial.print("Dust: "); Serial.print(dust, 3); Serial.println(" ug/m3\n");
+  	Serial.print("Dust: "); Serial.print(dust, 3); Serial.println(" ug/m3");
 	}else{
+		bmepres = 1010000 + random(0, 8000000)/100.0;  // 101000 ~ 109000
 		bmetemp = 22.0 + random(0, 1000)/100.0;  // 22~32
 		bmehum = 25.0 + random(0, 5000)/100.0;  // 25~75
-		bmepres = 1010000 + random(0, 8000000)/100.0;  // 101000 ~ 109000
 		Serial.print("Temp: "); Serial.print(bmetemp); Serial.print("°"+ String(tempUnit==BME280::TempUnit_Celsius?"C":"F"));
 		Serial.print("    Humidity: "); Serial.print(bmehum); Serial.print("% RH");
 		Serial.print("    Pressure: "); Serial.print(bmepres); Serial.println("Pa");
 
 		dust = 10.0 + random(0, 1000)/100.0; // 10~20
-  	Serial.print("Dust: "); Serial.print(dust, 3); Serial.println(" ug/m3\n");
+  	Serial.print("Dust: "); Serial.print(dust, 3); Serial.println(" ug/m3");
 	}
 
 	packet = "";  // NodeNum, dust, temp, hum
@@ -167,7 +167,9 @@ void loop() {
 	packet.concat("#");
 	packet.concat(bmehum);
 	packet.concat("$  ");
-	
+
+	Serial.print("LoRa packet: "); Serial.println(packet); Serial.println("");
+
 	LoRa.beginPacket();
 	LoRa.print(packet);
 	LoRa.endPacket();
