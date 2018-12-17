@@ -13,7 +13,7 @@
 #define RST     14   // GPIO14 -- SX1278's RESET
 #define DI0     26   // GPIO26 -- SX1278's IRQ(Interrupt Request)
 
-#define BAND  868E6  // 433E6, 868E6, 915E6
+#define BAND  915E6  // 433E6, 868E6, 915E6
 #define TXPOW 20 // 2~20 -> PA_OUTPUT_RF0_PIN, 0~14-> PA_OUTPUT_BOOST_PIN
 #define SF 7 // Spreading Factor: 6~12, default 7
 #define SBW 125E3 // Signal Bandwidth: 7.83E, 10.4E3, 15.6E3, 20.8E3, 41.7E3, 62.5E3, 125.E3, 250E3, default 125E3
@@ -42,11 +42,13 @@ BME280::PresUnit presUnit(BME280::PresUnit_Pa);
 SSD1306 display(0x3c, 21, 22);
 BME280I2C bme(settings);
 
+void printInfo();
+
 
 uint8_t dip1, dip2, dip3, dip4, NodeNum = 0;
+uint32_t packCount = 0;
 
 void setup() {
-	delay(2500);
 	Serial.begin(115200);
 	Serial.println("\n\nDevice - LoRa Sensor Node");
 	if(DEBUG == 1){
@@ -112,7 +114,7 @@ void setup() {
 	dip2 = digitalRead(dipPin2);
 	dip3 = digitalRead(dipPin3);
 	dip4 = analogRead(dipPin4)>4000?1:0;  // designated pin CLX1: seems to have special function, disconnect before upload
-	NodeNum = dip1 + dip2*2 + dip3*4 + dip4*8;
+	NodeNum = dip1 + dip2*2 + dip3*4 + dip4*8 + 1;
 
 	Serial.print("\nDIP1: "); Serial.println(dip1);
 	Serial.print("DIP2: "); Serial.println(dip2);
@@ -121,7 +123,7 @@ void setup() {
 	Serial.print("\nNodeNum:"); Serial.println(NodeNum);
 
   Serial.println("Init complete\n");
-	delay(1200);
+	delay(250);
 }
 
 String packet = "";
@@ -133,7 +135,7 @@ void loop() {
 	dip2 = digitalRead(dipPin2);
 	dip3 = digitalRead(dipPin3);
 	dip4 = analogRead(dipPin4)>4000?1:0;  // designated pin CLX1: seems to have special function, pull low before upload
-	NodeNum = dip1 + dip2*2 + dip3*4 + dip4*8;
+	NodeNum = dip1 + dip2*2 + dip3*4 + dip4*8 + 1;
 
 	if(DEBUG == 0){
   	bme.read(bmepres, bmetemp, bmehum, tempUnit, presUnit);
@@ -144,6 +146,7 @@ void loop() {
 
 		// printBME280Data(&Serial);
 		dust = pulse2ugm3(pulseIn(GP2Y10, LOW, 20000));
+		dust = dust<0?0:dust;
   	Serial.print("Dust: "); Serial.print(dust, 3); Serial.println(" ug/m3");
 	}else{
 		bmepres = 1010000 + random(0, 8000000)/100.0;  // 101000 ~ 109000
@@ -174,6 +177,16 @@ void loop() {
 	LoRa.print(packet);
 	LoRa.endPacket();
 
+	packCount++;
+
+	display.clear();
+	display.setFont(Open_Sans_Hebrew_Condensed_18);
+	display.setTextAlignment(TEXT_ALIGN_LEFT);
+	display.drawString(0, 0, "NodeNum: " + String(NodeNum));
+	display.drawString(0, 20, "count: " + String(packCount));
+	printInfo();
+	display.display();
+
 	delay(1000);
 }
 
@@ -198,4 +211,26 @@ void printBME280Data(Stream* client){
   client->print("    Pressure: ");
   client->print(bmepres);
   client->println("Pa");
+}
+
+void printInfo(){
+	display.setFont(Open_Sans_Hebrew_Condensed_14);
+	display.setTextAlignment(TEXT_ALIGN_RIGHT);
+
+	switch( String(BAND).substring(0, 3).toInt() ) {
+		case 433:
+			display.drawString(128, 48, "TXPOW: " + String(TXPOW) + ", 433Mhz, SF " + String(SF));
+			break;
+
+		case 868:
+			display.drawString(128, 48, "TXPOW: " + String(TXPOW) + ", 868Mhz, SF " + String(SF));
+			break;
+
+		case 915:
+			display.drawString(128, 48, "TXPOW: " + String(TXPOW) + ", 915Mhz, SF " + String(SF));
+			break;
+		
+		default:
+			break;
+	}
 }

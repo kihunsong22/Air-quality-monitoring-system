@@ -15,8 +15,8 @@
 #define RST     14   // GPIO14 -- SX1278's RESET
 #define DI0     26   // GPIO26 -- SX1278's IRQ(Interrupt Request)
 
-#define BAND  868E6  // 433E6, 868E6, 915E6
-#define TXPOW 18 // 2~20 -> PA_OUTPUT_RF0_PIN, 0~14-> PA_OUTPUT_BOOST_PIN
+#define BAND  915E6  // 433E6, 868E6, 915E6
+#define TXPOW 20 // 2~20 -> PA_OUTPUT_RF0_PIN, 0~14-> PA_OUTPUT_BOOST_PIN
 #define SF 7 // Spreading Factor: 6~12, default 7
 #define SBW 125E3 // Signal Bandwidth: 7.83E, 10.4E3, 15.6E3, 20.8E3, 41.7E3, 62.5E3, 125.E3, 250E3, default 125E3
 #define CR 5 // Coding Rate: 5~8, default 5
@@ -27,8 +27,9 @@
 #define PASS2 "newdimigo"
 #define SSID3 "DimiFi-2G"
 #define PASS3 "newdimigo"
+#define SSID4 "DimiFi_2G"
+#define PASS4 "newdimigo"
 
-const String link = "http://lora.cafe24app.com/get/";
 
 WiFiMulti WiFiMulti;
 HTTPClient http;
@@ -39,7 +40,7 @@ void printInfo();
 
 void setup() {
 	Serial.begin(115200);
-	Serial.println("\n\nDevice 2 - LoRa Gateway");
+	Serial.println("\n\nDevice - LoRa Gateway");
 
 	pinMode(16, OUTPUT);  // OLED reset pin
 	pinMode(2, OUTPUT);  //LED
@@ -51,9 +52,10 @@ void setup() {
 	WiFiMulti.addAP(SSID1, PASS1);
 	WiFiMulti.addAP(SSID2, PASS2);
 	WiFiMulti.addAP(SSID3, PASS3);
+	WiFiMulti.addAP(SSID4, PASS4);
 	Serial.print("Establishing WiFI connection");
 	while(WiFiMulti.run() != WL_CONNECTED) {
-		// ESP.wdtFeed();
+		// ESP.wdtFeed();  // uneccesary for ESP32
 		Serial.print(".");
 		delay(250);
 	}
@@ -87,13 +89,16 @@ void setup() {
 	delay(50);
 }
 
+
 String packet, prevpacket;
 int packetSize = 0;
-uint16_t count_packnum = 0;
+
+// const char* webLink = "http://lora.cafe24app.com/get/";
+const char* webLink = "http://lora.cafe24app.com/get/?temp=<TEMP>&dust=<dusk>&co2=<co2>&pres=<PRESS>&batt=<BATT>&num=16&status=500";
+uint32_t count_packnum = 0;
 uint8_t pac_NodeNum = 0;
 float pac_dust, pac_temp, pac_hum = 0;
 
-// http://lora.cafe24app.com/get/?temp=<TEMP>&dust=<dusk>&co2=<co2>&pres=<PRESS>&batt=<BATT>&num=16&status=500
 void loop() {
 	packetSize = LoRa.parsePacket();
 	if (packetSize){  // if(non-zero) -> true
@@ -111,10 +116,12 @@ void loop() {
 		Serial.print("Packet: ");  Serial.println(packet);
 		Serial.print("RSSI: ");  Serial.println(String(LoRa.packetRssi(), DEC));
 
-		// data = payload.substring(payload.indexOf("<temp>")+6, payload.indexOf("</temp>"));
-		// temp1 = data.toInt();
-		// data = payload.substring(payload.indexOf("<reh>")+5, payload.indexOf("</reh>"));
-		// hum1 = data.toInt();
+		if(packet.startsWith("$") && packet.endsWith("$")){
+			// data = payload.substring(payload.indexOf("<temp>")+6, payload.indexOf("</temp>"));
+			// temp1 = data.toInt();
+			// data = payload.substring(payload.indexOf("<reh>")+5, payload.indexOf("</reh>"));
+			// hum1 = data.toInt();
+		}
 
 
 		display.clear();
@@ -122,8 +129,9 @@ void loop() {
 		display.setTextAlignment(TEXT_ALIGN_RIGHT);
 		display.drawString(128, 0, "RSSI:" + String(LoRa.packetRssi(), DEC));
 		display.setTextAlignment(TEXT_ALIGN_LEFT);
-		display.drawStringMaxWidth(0, 0, 64, packet);
+		display.drawStringMaxWidth(0, 0, 64, String(count_packnum));
 		printInfo();
+		display.display();
 
 		prevpacket = packet;
 
@@ -151,7 +159,7 @@ void loop() {
 		// http.end();
 	}
 	
-	delay(50);
+	// delay(50);
 }
 
 void printInfo(){
@@ -174,6 +182,4 @@ void printInfo(){
 		default:
 			break;
 	}
-
-	display.display();
 }
