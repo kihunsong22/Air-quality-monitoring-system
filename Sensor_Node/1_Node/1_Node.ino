@@ -148,6 +148,8 @@ void loop() {
 		dust = pulse2ugm3(pulseIn(GP2Y10, LOW, 20000));
 		dust = dust<0?0:dust;
   	Serial.print("Dust: "); Serial.print(dust, 3); Serial.println(" ug/m3");
+
+		Serial.flush();
 	}else{
 		bmepres = 1010000 + random(0, 8000000)/100.0;  // 101000 ~ 109000
 		bmetemp = 22.0 + random(0, 1000)/100.0;  // 22~32
@@ -158,6 +160,7 @@ void loop() {
 
 		dust = 10.0 + random(0, 1000)/100.0; // 10~20
   	Serial.print("Dust: "); Serial.print(dust, 3); Serial.println(" ug/m3");
+		Serial.flush();
 	}
 
 	packet = "";  // NodeNum, dust, temp, hum
@@ -186,7 +189,8 @@ void loop() {
 	display.drawString(0, 20, "count: " + String(packCount));
 	printInfo();
 	display.display();
-
+	
+	Serial.flush();
 	delay(1000);
 }
 
