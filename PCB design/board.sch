@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="2" name="Route2" color="16" fill="1" visible="no" active="no"/>
@@ -20448,7 +20448,6 @@ Modified by Rikard Qvarnström&lt;/author&gt;</description>
 <part name="JP5" library="SparkFun-Jumpers" library_urn="urn:adsk.eagle:library:528" deviceset="JUMPER-SMT_2_NC_TRACE" device="_SILK" package3d_urn="urn:adsk.eagle:package:39281/1" value=""/>
 <part name="JP6" library="SparkFun-Jumpers" library_urn="urn:adsk.eagle:library:528" deviceset="JUMPER-SMT_2_NC_TRACE" device="_SILK" package3d_urn="urn:adsk.eagle:package:39281/1" value=""/>
 <part name="JP7" library="SparkFun-Jumpers" library_urn="urn:adsk.eagle:library:528" deviceset="JUMPER-SMT_2_NC_TRACE" device="_SILK" package3d_urn="urn:adsk.eagle:package:39281/1" value=""/>
-<part name="SUPPLY2" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="3.3V" device=""/>
 <part name="SUPPLY18" library="supply2" library_urn="urn:adsk.eagle:library:372" deviceset="V--&gt;" device="" value="GPIO15"/>
 <part name="SUPPLY19" library="supply2" library_urn="urn:adsk.eagle:library:372" deviceset="V--&gt;" device="" value="GPIO2"/>
 <part name="SUPPLY20" library="supply2" library_urn="urn:adsk.eagle:library:372" deviceset="V--&gt;" device="" value="GPIO4"/>
@@ -20466,15 +20465,13 @@ Modified by Rikard Qvarnström&lt;/author&gt;</description>
 <part name="GP2Y10_2" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="CONN_05" device="PTH_LONGPADS" package3d_urn="urn:adsk.eagle:package:38109/1"/>
 <part name="JP8" library="pinhead_v2" deviceset="PINHD-2X2" device="/OCT"/>
 <part name="JP9" library="pinhead_v2" deviceset="PINHD-2X2" device="/OCT"/>
-<part name="USB1" library="Seeed-Connector" library_urn="urn:adsk.eagle:library:478" deviceset="MICRO-USB-SMD-B-WITHOUT-POST-W/P(ST-USB-001G)" device="" package3d_urn="urn:adsk.eagle:package:33109/1" value="ST-USB-001G"/>
-<part name="SUPPLY17" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="5V" device=""/>
-<part name="GND9" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="USB2" library="Seeed-Connector" library_urn="urn:adsk.eagle:library:478" deviceset="MICRO-USB-SMD-B-WITHOUT-POST-W/P(ST-USB-001G)" device="" package3d_urn="urn:adsk.eagle:package:33109/1" value="ST-USB-001G"/>
 <part name="SUPPLY32" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="5V" device=""/>
 <part name="GND10" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="USB3" library="Seeed-Connector" library_urn="urn:adsk.eagle:library:478" deviceset="MICRO-USB-SMD-B-WITHOUT-POST-W/P(ST-USB-001G)" device="" package3d_urn="urn:adsk.eagle:package:33109/1" value="ST-USB-001G"/>
 <part name="SUPPLY33" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="5V" device=""/>
 <part name="GND11" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
+<part name="GND3" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -20637,9 +20634,6 @@ Modified by Rikard Qvarnström&lt;/author&gt;</description>
 <attribute name="NAME" x="243.84" y="160.02" size="1.778" layer="95" font="vector" rot="R180"/>
 <attribute name="VALUE" x="243.84" y="165.1" size="1.778" layer="96" font="vector" rot="R180" align="top-left"/>
 </instance>
-<instance part="SUPPLY2" gate="G$1" x="270.51" y="173.99" smashed="yes">
-<attribute name="VALUE" x="270.51" y="176.784" size="1.778" layer="96" align="bottom-center"/>
-</instance>
 <instance part="SUPPLY18" gate="G$1" x="213.36" y="149.86" smashed="yes">
 <attribute name="VALUE" x="214.63" y="149.098" size="1.778" layer="96"/>
 </instance>
@@ -20694,16 +20688,6 @@ Modified by Rikard Qvarnström&lt;/author&gt;</description>
 <attribute name="NAME" x="146.05" y="131.445" size="1.778" layer="95"/>
 <attribute name="VALUE" x="146.05" y="120.65" size="1.778" layer="96"/>
 </instance>
-<instance part="USB1" gate="USB" x="214.63" y="102.87" smashed="yes">
-<attribute name="NAME" x="205.74" y="110.49" size="1.27" layer="95" ratio="10"/>
-<attribute name="VALUE" x="215.9" y="110.49" size="1.27" layer="95" ratio="10"/>
-</instance>
-<instance part="SUPPLY17" gate="G$1" x="233.68" y="90.17" smashed="yes" rot="R180">
-<attribute name="VALUE" x="233.68" y="87.376" size="1.778" layer="96" rot="R180" align="bottom-center"/>
-</instance>
-<instance part="GND9" gate="1" x="233.68" y="118.11" smashed="yes" rot="R180">
-<attribute name="VALUE" x="233.68" y="118.364" size="1.778" layer="96" rot="R180" align="top-center"/>
-</instance>
 <instance part="USB2" gate="USB" x="251.46" y="101.6" smashed="yes">
 <attribute name="NAME" x="242.57" y="109.22" size="1.27" layer="95" ratio="10"/>
 <attribute name="VALUE" x="252.73" y="109.22" size="1.27" layer="95" ratio="10"/>
@@ -20723,6 +20707,9 @@ Modified by Rikard Qvarnström&lt;/author&gt;</description>
 </instance>
 <instance part="GND11" gate="1" x="233.68" y="74.93" smashed="yes" rot="R180">
 <attribute name="VALUE" x="233.68" y="75.184" size="1.778" layer="96" rot="R180" align="top-center"/>
+</instance>
+<instance part="GND3" gate="1" x="270.51" y="176.53" smashed="yes" rot="R180">
+<attribute name="VALUE" x="270.51" y="176.784" size="1.778" layer="96" rot="R180" align="top-center"/>
 </instance>
 </instances>
 <busses>
@@ -20808,26 +20795,6 @@ Modified by Rikard Qvarnström&lt;/author&gt;</description>
 <junction x="34.29" y="83.82"/>
 </segment>
 <segment>
-<pinref part="GND9" gate="1" pin="GND"/>
-<wire x1="227.33" y1="107.95" x2="233.68" y2="107.95" width="0.1524" layer="91"/>
-<wire x1="233.68" y1="107.95" x2="233.68" y2="113.03" width="0.1524" layer="91"/>
-<pinref part="USB1" gate="USB" pin="VCC"/>
-<pinref part="USB1" gate="USB" pin="GND@4"/>
-<pinref part="USB1" gate="USB" pin="GND@3"/>
-<wire x1="233.68" y1="113.03" x2="233.68" y2="115.57" width="0.1524" layer="91"/>
-<wire x1="201.93" y1="99.06" x2="201.93" y2="101.6" width="0.1524" layer="91"/>
-<pinref part="USB1" gate="USB" pin="GND@2"/>
-<wire x1="201.93" y1="101.6" x2="201.93" y2="104.14" width="0.1524" layer="91"/>
-<junction x="201.93" y="101.6"/>
-<pinref part="USB1" gate="USB" pin="GND@1"/>
-<wire x1="201.93" y1="104.14" x2="201.93" y2="106.68" width="0.1524" layer="91"/>
-<junction x="201.93" y="104.14"/>
-<wire x1="201.93" y1="106.68" x2="201.93" y2="113.03" width="0.1524" layer="91"/>
-<wire x1="201.93" y1="113.03" x2="233.68" y2="113.03" width="0.1524" layer="91"/>
-<junction x="201.93" y="106.68"/>
-<junction x="233.68" y="113.03"/>
-</segment>
-<segment>
 <pinref part="GND10" gate="1" pin="GND"/>
 <wire x1="264.16" y1="106.68" x2="270.51" y2="106.68" width="0.1524" layer="91"/>
 <wire x1="270.51" y1="106.68" x2="270.51" y2="111.76" width="0.1524" layer="91"/>
@@ -20867,6 +20834,20 @@ Modified by Rikard Qvarnström&lt;/author&gt;</description>
 <junction x="201.93" y="63.5"/>
 <junction x="233.68" y="69.85"/>
 </segment>
+<segment>
+<pinref part="SW1" gate="A" pin="8"/>
+<pinref part="SW1" gate="A" pin="7"/>
+<wire x1="270.51" y1="160.02" x2="270.51" y2="162.56" width="0.1524" layer="91"/>
+<junction x="270.51" y="160.02"/>
+<pinref part="SW1" gate="A" pin="6"/>
+<wire x1="270.51" y1="157.48" x2="270.51" y2="160.02" width="0.1524" layer="91"/>
+<junction x="270.51" y="157.48"/>
+<pinref part="SW1" gate="A" pin="5"/>
+<wire x1="270.51" y1="154.94" x2="270.51" y2="157.48" width="0.1524" layer="91"/>
+<wire x1="270.51" y1="162.56" x2="270.51" y2="173.99" width="0.1524" layer="91"/>
+<junction x="270.51" y="162.56"/>
+<pinref part="GND3" gate="1" pin="GND"/>
+</segment>
 </net>
 <net name="5V" class="1">
 <segment>
@@ -20900,12 +20881,6 @@ Modified by Rikard Qvarnström&lt;/author&gt;</description>
 <wire x1="140.97" y1="162.56" x2="140.97" y2="165.1" width="0.1524" layer="91"/>
 <wire x1="140.97" y1="165.1" x2="134.62" y2="165.1" width="0.1524" layer="91"/>
 <junction x="134.62" y="165.1"/>
-</segment>
-<segment>
-<pinref part="SUPPLY17" gate="G$1" pin="5V"/>
-<wire x1="227.33" y1="97.79" x2="233.68" y2="97.79" width="0.1524" layer="91"/>
-<wire x1="233.68" y1="97.79" x2="233.68" y2="90.17" width="0.1524" layer="91"/>
-<pinref part="USB1" gate="USB" pin="GND@5"/>
 </segment>
 <segment>
 <pinref part="SUPPLY32" gate="G$1" pin="5V"/>
@@ -21140,20 +21115,6 @@ Modified by Rikard Qvarnström&lt;/author&gt;</description>
 <wire x1="29.21" y1="76.2" x2="29.21" y2="73.66" width="0.1524" layer="91"/>
 <wire x1="34.29" y1="76.2" x2="29.21" y2="76.2" width="0.1524" layer="91"/>
 <junction x="29.21" y="76.2"/>
-</segment>
-<segment>
-<pinref part="SW1" gate="A" pin="8"/>
-<pinref part="SW1" gate="A" pin="7"/>
-<wire x1="270.51" y1="160.02" x2="270.51" y2="162.56" width="0.1524" layer="91"/>
-<junction x="270.51" y="160.02"/>
-<pinref part="SW1" gate="A" pin="6"/>
-<wire x1="270.51" y1="157.48" x2="270.51" y2="160.02" width="0.1524" layer="91"/>
-<junction x="270.51" y="157.48"/>
-<pinref part="SW1" gate="A" pin="5"/>
-<wire x1="270.51" y1="154.94" x2="270.51" y2="157.48" width="0.1524" layer="91"/>
-<pinref part="SUPPLY2" gate="G$1" pin="3.3V"/>
-<wire x1="270.51" y1="162.56" x2="270.51" y2="173.99" width="0.1524" layer="91"/>
-<junction x="270.51" y="162.56"/>
 </segment>
 </net>
 <net name="VOUT_1" class="0">
