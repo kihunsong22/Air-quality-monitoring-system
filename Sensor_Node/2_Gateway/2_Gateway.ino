@@ -96,15 +96,13 @@ void setup() {
 }
 
 
-String packet, prevpacket;
+String packet = "";
 int packetSize = 0;
 String pac_history="";
 
-// const char* webLink = "http://lora.cafe24app.com/get/";
-const char* webLink = "http://lora.cafe24app.com/get/?temp=<TEMP>&dust=<dusk>&co2=<co2>&pres=<PRESS>&batt=<BATT>&num=16&status=500";
 uint32_t count_packnum = 0;
 uint8_t pac_NodeNum = 0;
-float pac_dust, pac_temp, pac_hum = 0;
+float pac_dust, pac_temp, pac_hum, pac_pres = 0;
 
 void loop() {
 	packetSize = LoRa.parsePacket();
@@ -137,18 +135,22 @@ void loop() {
 			packet = packet.substring(packet.indexOf("#")+1);
 			data = packet.substring(0, packet.indexOf("#"));
 			pac_hum = data.toFloat();
+			packet = packet.substring(packet.indexOf("#")+1);
+			data = packet.substring(0, packet.indexOf("#"));
+			pac_pres = data.toFloat();
 			Serial.print("pac_NodeNum: "); Serial.println(pac_NodeNum);
-			Serial.print("pac_dust: "); Serial.println(pac_dust);
-			Serial.print("pac_temp: "); Serial.println(pac_temp);
-			Serial.print("pac_hum: "); Serial.println(pac_hum);
+			Serial.print("pac_dust: "); Serial.print(pac_dust); Serial.println("ug/m3");
+			Serial.print("pac_temperature: "); Serial.print(pac_temp); Serial.println("°C");
+			Serial.print("pac_humidity: "); Serial.print(pac_hum); Serial.println("% RH");
+			Serial.print("pac_pressure: "); Serial.print(pac_pres); Serial.println("Pa");
 
 			String temp = "";
 			temp = pac_NodeNum;
 			temp.concat(pac_history);
 			pac_history = temp;
 
-			pac_history.concat(String(pac_NodeNum));
 			if(pac_history.length()>16) {  pac_history = pac_history.substring(0, 16);  }
+			Serial.print("pac_history: "); Serial.println(pac_history);
 
 			display.clear();
 			display.setFont(Open_Sans_Hebrew_Condensed_18);
@@ -163,31 +165,27 @@ void loop() {
 			printInfo();
 			display.display();
 
-			prevpacket = packet;
+			const char* webLink = "http://lora.cafe24app.com/get/?num=<NodeNum>&dust=<DUST>&temp=<TEMP>&humid=<HUM>&pres=<PRESS>&status=set&co2=<CO2>&batt=<BATT>";
+			String conLink = webLink;
+			conLink.replace("<NodeNum>", String(pac_NodeNum));
+			conLink.replace("<DUST>", String(pac_dust));
+			conLink.replace("<TEMP>", String(pac_temp));
+			conLink.replace("<HUM>", String(pac_hum));
+			conLink.replace("<PRESS>", String(pac_pres));
+			conLink.replace("&co2=<CO2>", "");
+			conLink.replace("&batt=<BATT>", "");
+			conLink.replace("<STATUS>", "200");
 
-			// http.begin(link1);
-			// if (http.GET() == HTTP_CODE_OK) {
-			// 	payload = http.getString();
-			// 	payload = payload.substring(payload.indexOf("<data seq=\"0\">"), payload.indexOf("</data>"));
-
-			// 	data = payload.substring(payload.indexOf("<temp>")+6, payload.indexOf("</temp>"));
-			// 	temp1 = data.toInt();
-			// 	data = payload.substring(payload.indexOf("<reh>")+5, payload.indexOf("</reh>"));
-			// 	hum1 = data.toInt();
-			// 	weather1 = payload.substring(payload.indexOf("<wfKor>")+7, payload.indexOf("</wfKor>"));
-
-			// 	Serial.print("서울시 성동구 온도: ");
-			// 	Serial.println(temp1);
-			// 	Serial.print("서울시 성동구 습도: ");
-			// 	Serial.println(hum1);
-			// 	Serial.print("서울시 성동구 날씨: ");
-			// 	Serial.println(weather1);
-			// 	Serial.println();
-			// }else{
-			// 	Serial.println("HTTP Connection Error");
-			// }
-			// http.end();
+			http.begin(conLink);
+			if (http.GET() == HTTP_CODE_OK) {
+				String payload = http.getString();
+				Serial.print("HTTP connection success: "); Serial.println(payload);
+			}else{
+				Serial.println("HTTP Connection Error");
+			}
+			http.end();
 		}
+		Serial.println("=====\n");
 	}
 	
 	// delay(50);

@@ -170,7 +170,7 @@ void loop() {
 		Serial.flush();
 	}
 
-	packet = "";  // NodeNum, dust, temp, hum
+	packet = "";  // NodeNum, dust, temp, hum, pres
 	packet.concat("$");
 	packet.concat(String(NodeNum));
 	packet.concat("#");
@@ -179,6 +179,8 @@ void loop() {
 	packet.concat(bmetemp);
 	packet.concat("#");
 	packet.concat(bmehum);
+	packet.concat("#");
+	packet.concat(bmepres);
 	packet.concat("$  ");
 
 	Serial.print("LoRa packet: "); Serial.println(packet); Serial.println("");
