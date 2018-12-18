@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LoRa Maker Project</title>
+    <link rel="stylesheet" href="data/style.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+            
+       
+    </style>
+</head>
+<body>
+    <div id="nav">
+        <img src="data/aperture_official_logo_wtext_white_.png" alt="aperture logo" height="30px">
+    </div>
+
+    <!--########################## !-->
+    
+    <div id="container">
+        <div class = "containerHeader">
+            <b>대시보드</b>
+        </div>
+        <button class = "button" onclick="graphClick(this.innerText)">1반</button>
+        <button class = "button" onclick="graphClick(this.innerText)">2반</button>
+        <button class = "button" onclick="graphClick(this.innerText)">3반</button>
+        <button class = "button" onclick="graphClick(this.innerText)">4반</button>
+        <button class = "button" onclick="graphClick(this.innerText)">5반</button>
+        <button class = "button" onclick="graphClick(this.innerText)">6반</button>
+        <hr>
+        <div>
+            <div id="graphHeader" class="graphHeader">&lt; 1반 &gt;</div>
+        </div>
+        <hr>
+        <br><br>
+        
+        <div id="graph">
+            
+            <div id="temp"></div>
+                
+            <div id="hmd"></div>
+            
+            <div id="dust"></div>
+            
+        </div>
+        
+    </div>
+
+
+    <script>
+        
+
+        drawGraph(document.cookie);
+
+        function graphClick(cless){
+            document.getElementById('graphHeader').innerText = "< "+cless+" >"
+            document.cookie = cless;
+            drawGraph(cless)
+        }
+        if(document.cookie){
+            document.getElementById('graphHeader').innerText = "< "+document.cookie+" >"
+        }
+
+        
+        function drawGraph(cless){
+
+            let req = new XMLHttpRequest();
+            req.open('GET', 'http://localhost:8002/graph/?class='+cless, true);
+            console.log(req.response)
+            req.onreadystatechange = function (aEvt) {
+            if (req.readyState === 4) {
+                if(req.status === 200){
+                    let dustD = [];
+                    let tempD = [];
+                    let humidD = [];
+                    let time = [];
+                    let presD = [];
+                    let battD = [];
+                    let flag = 0;
+                    let array = JSON.parse("[" + req.response + "]")[0];
+                    console.log(array)
+                    array.forEach((element,index) => {
+                        
+                        dustD.push(element.data_dust)
+                        tempD.push(element.data_temp)
+                        humidD.push(element.data_humid)
+                        presD.push(element.data_pres)
+                        battD.push(element.data_batt)
+                        let b = "";
+                        b
+                        time.push(Number(element.timeforme.substr(8,4))) 
+                        
+                        if(index == array.length-1){
+                            
+                            flag = 1
+                        }
+                    });
+                    let temp = setInterval(()=>{
+                        if(flag){
+                            dustGraph(dustD,time);
+                            tempGraph(tempD,time);
+                            humidGraph(humidD,time);
+                            presGraph(presD,time);
+                            battGraph(battD,time);
+                            clearInterval(temp)
+                        }
+                        
+                    },100)
+                }
+                else{
+                    console.log("Error loading page\n");
+                }
+            }
+            };
+            req.send(null);
+
+
+            
+            
+        }
+        function dustGraph(dust_data,time){
+
+            let trace = {
+                x: time,
+                y: dust_data,
+                mode: 'lines+markers'
+            };
+            let data = [ trace ];
+            let layout = {
+                title:'먼지'
+            };
+            Plotly.newPlot('dust', data, layout);
+
+        }
+        function tempGraph(temp_data,time){
+
+            let trace = {
+                x: time,
+                y: temp_data,
+                mode: 'lines+markers'
+            };
+            let data = [ trace ];
+            let layout = {
+                title:'온도'
+            };
+            Plotly.newPlot('temp', data, layout);
+        }
+        function humidGraph(humid_data,time){
+
+            let trace = {
+                x: time,
+                y: humid_data,
+                mode: 'lines+markers'
+            };
+            let data = [ trace ];
+            let layout = {
+                title:'습도'
+            };
+            Plotly.newPlot('hmd', data, layout);
+
+        }
+
+        function presGraph(pres_data,time){
+
+        }
+        function battGraph(batt_data,time){
+
+        }
+        
+    </script>
+<!-- 
+    let a=  {
+        idx: 8,
+        timestamp: "2018-12-17T01:57:34.000Z",
+        debug: 404,
+        data_num: 2,
+        data_temp: 1,
+        data_dust: 1,
+        data_co2: 1,
+        data_pres: 1,
+        data_batt: 1,
+        timeforme: '20181217' } -->
+    <!--########################## !-->
+
+    <div>
+        
+        <div id="container">
+            <div>
+                
+                <p class = "bobtitle">오늘의 급식</p>
+                <p id= 'breakfast' class='bob'></p>
+                <p id= 'lunch' class='bob'></p>
+                <p id= 'dinner' class='bob'></p>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        
+    
+        var req = new XMLHttpRequest();
+        req.open('GET', 'http://localhost:8002/bob', true);
+        req.onreadystatechange = function (aEvt) {
+        if (req.readyState === 4) {
+            if(req.status === 200){
+                try{
+                    let bobObject = JSON.parse(req.response)
+                    document.getElementById('breakfast').innerText = "아침: "+bobObject.breakfast
+                    document.getElementById('lunch').innerText = "점심: "+bobObject.lunch
+                    document.getElementById('dinner').innerText ="저녁: "+ bobObject.dinner
+           
+                }
+                catch(err){
+
+                    document.getElementById('breakfast').innerText = "잠시 후 다시 시도해 주세요."
+                    document.getElementById('lunch').innerText = "잠시 후 다시 시도해 주세요."
+                    document.getElementById('dinner').innerText ="잠시 후 다시 시도해 주세요."
+                    
+                }
+                
+            }
+            else{
+                console.log("Error loading page\n");
+            }
+        }
+        };
+        req.send(null);
+        
+    </script>
+    
+    <!--########################## !-->
+
+    <!--########################## !-->
+    </div>
+        <div class = "timerFrame">
+            <iframe src="http://test1.seungyeon.xyz/test/2020suneung.html" style="width:365px; height:88px; border:0;"></iframe>
+            <iframe src="http://test1.seungyeon.xyz/test/2021suneung.html" style="width:365px; height:88px; border:0;"></iframe>
+        </div>
+    </div>
+    <!--########################## !-->
+
+</body>
+</html>
