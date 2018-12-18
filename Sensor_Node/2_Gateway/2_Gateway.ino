@@ -46,7 +46,16 @@ void setup() {
 	pinMode(2, OUTPUT);  //LED
 	digitalWrite(16, LOW);    // set GPIO16 low to reset OLED
 	delay(50);
-	digitalWrite(16, HIGH); // while OLED is running, must set GPIO16 in high、
+	digitalWrite(16, HIGH); // while OLED is running, must set GPIO16 in high
+
+	display.init();
+	display.flipScreenVertically();
+	display.clear();
+	display.setFont(Open_Sans_Hebrew_Condensed_24);
+	display.setTextAlignment(TEXT_ALIGN_LEFT);
+	display.drawString(0, 0, "LoRa Gateway");
+	printInfo();
+	display.display();
 
 	WiFi.mode(WIFI_STA);
 	WiFiMulti.addAP(SSID1, PASS1);
@@ -82,16 +91,14 @@ void setup() {
 	}
 	LoRa.receive();
 
-	display.init();
-	display.flipScreenVertically();  
-
   Serial.println("Init complete\n");
-	delay(50);
+	delay(200);
 }
 
 
 String packet, prevpacket;
 int packetSize = 0;
+String pac_history="";
 
 // const char* webLink = "http://lora.cafe24app.com/get/";
 const char* webLink = "http://lora.cafe24app.com/get/?temp=<TEMP>&dust=<dusk>&co2=<co2>&pres=<PRESS>&batt=<BATT>&num=16&status=500";
@@ -117,46 +124,70 @@ void loop() {
 		Serial.print("RSSI: ");  Serial.println(String(LoRa.packetRssi(), DEC));
 
 		if(packet.startsWith("$") && packet.endsWith("$")){
-			// data = payload.substring(payload.indexOf("<temp>")+6, payload.indexOf("</temp>"));
-			// temp1 = data.toInt();
-			// data = payload.substring(payload.indexOf("<reh>")+5, payload.indexOf("</reh>"));
-			// hum1 = data.toInt();
+			String data="";
+			packet.replace("$", "");
+			data = packet.substring(0, packet.indexOf("#"));
+			pac_NodeNum = data.toInt();
+			packet = packet.substring(packet.indexOf("#")+1);
+			data = packet.substring(0, packet.indexOf("#"));
+			pac_dust = data.toFloat();
+			packet = packet.substring(packet.indexOf("#")+1);
+			data = packet.substring(0, packet.indexOf("#"));
+			pac_temp = data.toFloat();
+			packet = packet.substring(packet.indexOf("#")+1);
+			data = packet.substring(0, packet.indexOf("#"));
+			pac_hum = data.toFloat();
+			Serial.print("pac_NodeNum: "); Serial.println(pac_NodeNum);
+			Serial.print("pac_dust: "); Serial.println(pac_dust);
+			Serial.print("pac_temp: "); Serial.println(pac_temp);
+			Serial.print("pac_hum: "); Serial.println(pac_hum);
+
+			String temp = "";
+			temp = pac_NodeNum;
+			temp.concat(pac_history);
+			pac_history = temp;
+
+			pac_history.concat(String(pac_NodeNum));
+			if(pac_history.length()>16) {  pac_history = pac_history.substring(0, 16);  }
+
+			display.clear();
+			display.setFont(Open_Sans_Hebrew_Condensed_18);
+			display.setTextAlignment(TEXT_ALIGN_RIGHT);
+			display.drawString(128, 0, "RSSI:" + String(LoRa.packetRssi(), DEC));
+			display.setFont(Open_Sans_Hebrew_Condensed_24);
+			display.setTextAlignment(TEXT_ALIGN_LEFT);
+			display.drawStringMaxWidth(0, 0, 64, String(count_packnum));
+			display.setFont(Open_Sans_Hebrew_Condensed_18);
+			display.setTextAlignment(TEXT_ALIGN_LEFT);
+			display.drawStringMaxWidth(0, 26, 128, pac_history);
+			printInfo();
+			display.display();
+
+			prevpacket = packet;
+
+			// http.begin(link1);
+			// if (http.GET() == HTTP_CODE_OK) {
+			// 	payload = http.getString();
+			// 	payload = payload.substring(payload.indexOf("<data seq=\"0\">"), payload.indexOf("</data>"));
+
+			// 	data = payload.substring(payload.indexOf("<temp>")+6, payload.indexOf("</temp>"));
+			// 	temp1 = data.toInt();
+			// 	data = payload.substring(payload.indexOf("<reh>")+5, payload.indexOf("</reh>"));
+			// 	hum1 = data.toInt();
+			// 	weather1 = payload.substring(payload.indexOf("<wfKor>")+7, payload.indexOf("</wfKor>"));
+
+			// 	Serial.print("서울시 성동구 온도: ");
+			// 	Serial.println(temp1);
+			// 	Serial.print("서울시 성동구 습도: ");
+			// 	Serial.println(hum1);
+			// 	Serial.print("서울시 성동구 날씨: ");
+			// 	Serial.println(weather1);
+			// 	Serial.println();
+			// }else{
+			// 	Serial.println("HTTP Connection Error");
+			// }
+			// http.end();
 		}
-
-
-		display.clear();
-		display.setFont(Open_Sans_Hebrew_Condensed_18);
-		display.setTextAlignment(TEXT_ALIGN_RIGHT);
-		display.drawString(128, 0, "RSSI:" + String(LoRa.packetRssi(), DEC));
-		display.setTextAlignment(TEXT_ALIGN_LEFT);
-		display.drawStringMaxWidth(0, 0, 64, String(count_packnum));
-		printInfo();
-		display.display();
-
-		prevpacket = packet;
-
-		// http.begin(link1);
-		// if (http.GET() == HTTP_CODE_OK) {
-		// 	payload = http.getString();
-		// 	payload = payload.substring(payload.indexOf("<data seq=\"0\">"), payload.indexOf("</data>"));
-
-		// 	data = payload.substring(payload.indexOf("<temp>")+6, payload.indexOf("</temp>"));
-		// 	temp1 = data.toInt();
-		// 	data = payload.substring(payload.indexOf("<reh>")+5, payload.indexOf("</reh>"));
-		// 	hum1 = data.toInt();
-		// 	weather1 = payload.substring(payload.indexOf("<wfKor>")+7, payload.indexOf("</wfKor>"));
-
-		// 	Serial.print("서울시 성동구 온도: ");
-		// 	Serial.println(temp1);
-		// 	Serial.print("서울시 성동구 습도: ");
-		// 	Serial.println(hum1);
-		// 	Serial.print("서울시 성동구 날씨: ");
-		// 	Serial.println(weather1);
-		// 	Serial.println();
-		// }else{
-		// 	Serial.println("HTTP Connection Error");
-		// }
-		// http.end();
 	}
 	
 	// delay(50);

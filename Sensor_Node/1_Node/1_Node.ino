@@ -70,6 +70,22 @@ void setup() {
 	pinMode(dipPin3, INPUT_PULLDOWN);  //all connected to 3V3
 	pinMode(dipPin4, INPUT_PULLDOWN);
 
+	dip1 = digitalRead(dipPin1);  // read node number from external DIP switch
+	dip2 = digitalRead(dipPin2);
+	dip3 = digitalRead(dipPin3);
+	dip4 = analogRead(dipPin4)>4000?1:0;  // designated pin CLX1: seems to have special function, disconnect before upload
+	NodeNum = dip1 + dip2*2 + dip3*4 + dip4*8 + 1;
+
+	display.init();
+	display.flipScreenVertically();
+	display.clear();
+	display.setFont(Open_Sans_Hebrew_Condensed_24);
+	display.setTextAlignment(TEXT_ALIGN_LEFT);
+	display.drawString(0, 0, "LoRa Sensor");
+	display.setTextAlignment(TEXT_ALIGN_LEFT);
+	printInfo();
+	display.display();
+
 	SPI.begin(SCK,MISO,MOSI,SS);
 	LoRa.setPins(SS,RST,DI0);
 	LoRa.setTxPower(TXPOW);
@@ -106,15 +122,6 @@ void setup() {
 				Serial.println("BME280 Initialization FAILED!");
 		}
 	}
-
-	display.init();
-	display.flipScreenVertically();
-
-	dip1 = digitalRead(dipPin1);  // read node number from external DIP switch
-	dip2 = digitalRead(dipPin2);
-	dip3 = digitalRead(dipPin3);
-	dip4 = analogRead(dipPin4)>4000?1:0;  // designated pin CLX1: seems to have special function, disconnect before upload
-	NodeNum = dip1 + dip2*2 + dip3*4 + dip4*8 + 1;
 
 	Serial.print("\nDIP1: "); Serial.println(dip1);
 	Serial.print("DIP2: "); Serial.println(dip2);
@@ -191,7 +198,8 @@ void loop() {
 	display.display();
 	
 	Serial.flush();
-	delay(1000);
+	uint16_t delayt = 5000 + random(0, 1000);
+	delay(delayt);
 }
 
 
