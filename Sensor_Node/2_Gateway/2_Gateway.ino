@@ -31,6 +31,8 @@
 #define PASS4 "newdimigo"
 #define SSID5 "DimiFi 4G1"
 #define PASS5 "newdimigo"
+#define SSID6 "DimiFi 4G2"
+#define PASS6 "newdimigo"
 
 
 WiFiMulti WiFiMulti;
@@ -66,6 +68,7 @@ void setup() {
 	WiFiMulti.addAP(SSID3, PASS3);
 	WiFiMulti.addAP(SSID4, PASS4);
 	WiFiMulti.addAP(SSID5, PASS5);
+	WiFiMulti.addAP(SSID6, PASS6);
 	Serial.print("Establishing WiFI connection");
 	uint16_t wifiCount = 0;
 	while(WiFiMulti.run() != WL_CONNECTED) {
