@@ -29,6 +29,8 @@
 #define PASS3 "newdimigo"
 #define SSID4 "DimiFi_2G"
 #define PASS4 "newdimigo"
+#define SSID5 "DimiFi 4G1"
+#define PASS5 "newdimigo"
 
 
 WiFiMulti WiFiMulti;
@@ -36,7 +38,7 @@ HTTPClient http;
 SSD1306 display(0x3c, 21, 22);
 
 void printInfo();
-int filter_okay(float val1, float val2);
+int filter_okay(float val1, float val2, float newVal);
 
 
 void setup() {
@@ -63,6 +65,7 @@ void setup() {
 	WiFiMulti.addAP(SSID2, PASS2);
 	WiFiMulti.addAP(SSID3, PASS3);
 	WiFiMulti.addAP(SSID4, PASS4);
+	WiFiMulti.addAP(SSID5, PASS5);
 	Serial.print("Establishing WiFI connection");
 	uint16_t wifiCount = 0;
 	while(WiFiMulti.run() != WL_CONNECTED) {
@@ -81,6 +84,16 @@ void setup() {
 	Serial.println(WiFi.localIP());
 	WiFi.printDiag(Serial);
 	Serial.println();
+
+	display.clear();
+	display.setFont(Open_Sans_Hebrew_Condensed_24);
+	display.setTextAlignment(TEXT_ALIGN_LEFT);
+	display.drawString(0, 0, "LoRa Gateway");
+	display.setFont(Open_Sans_Hebrew_Condensed_18);
+	display.setTextAlignment(TEXT_ALIGN_LEFT);
+	display.drawString(0, 26, "WiFi connected");
+	printInfo();
+	display.display();
 
 	SPI.begin(SCK,MISO,MOSI,SS);
 	LoRa.setPins(SS,RST,DI0);
@@ -168,9 +181,9 @@ void loop() {
 			count_packnum_a[pac_NodeNum-1]++;
 
 			if(count_packnum>3 && count_packnum_a[pac_NodeNum-1]>3 && pac_okay == 1){
-				if(filter_okay(filt_temp[pac_NodeNum-1][1], pac_temp)!=0 ) {  pac_okay = 0; Serial.println("INVALID temp, FILTER_OKAY!=0");  }
-				if(filter_okay(filt_hum[pac_NodeNum-1][1], pac_hum)!=0 ) {  pac_okay = 0; Serial.println("INVALID hum, FILTER_OKAY!=0");  }
-				if(filter_okay(filt_pres[pac_NodeNum-1][1], pac_pres)!=0 ) {  pac_okay = 0; Serial.println("INVALID pres, FILTER_OKAY!=0");  }
+				if(filter_okay(filt_temp[pac_NodeNum-1][0], filt_temp[pac_NodeNum-1][1], pac_temp)!=0 ) {  pac_okay = 0; Serial.println("INVALID temp, FILTER_OKAY!=0");  }
+				if(filter_okay(filt_hum[pac_NodeNum-1][0], filt_hum[pac_NodeNum-1][1], pac_hum)!=0 ) {  pac_okay = 0; Serial.println("INVALID hum, FILTER_OKAY!=0");  }
+				if(filter_okay(filt_pres[pac_NodeNum-1][0], filt_pres[pac_NodeNum-1][1], pac_pres)!=0 ) {  pac_okay = 0; Serial.println("INVALID pres, FILTER_OKAY!=0");  }
 			}
 
 			if(pac_okay == 1){
@@ -259,17 +272,18 @@ void printInfo(){
 	}
 }
 
-int filter_okay(float val1, float val2){
+int filter_okay(float val1, float val2, float newVal){
 	val1 = val1<0?val1*(-1):val1;
 	val2 = val2<0?val2*(-1):val2;
+	newVal = newVal<0?newVal*(-1):newVal;
 
-	float val_mean = (val2 + val1)/2;
+	float val_mean = (val1 + val2)/2;
 	val_mean = val_mean<0?val_mean*(-1):val_mean;
 
-	if(val1*(0.5) >= val_mean){
+	if(val_mean*(0.5) >= newVal){
 		Serial.println("Catch1");
 		return 10;  // not okay
-	}else if(val1*(1.5) <= val_mean){
+	}else if(val_mean*(1.5) <= newVal){
 		Serial.println("Catch2");
 		return 10;
 	}else{
