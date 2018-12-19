@@ -27,12 +27,13 @@ const uint8_t dipPin3 = 4;
 const uint8_t dipPin4 = 0;  // CLX1 pin - should be replaced
 
 BME280I2C::Settings settings(
-	BME280::OSR_X16,  // temp oversampling
-	BME280::OSR_X16,  // humidity oversampling
-	BME280::OSR_X16,  // pressure oversampling
+	BME280::OSR_X8,  // temp oversampling
+	BME280::OSR_X8,  // humidity oversampling
+	BME280::OSR_X8,  // pressure oversampling
 	BME280::Mode_Forced,  // operation mode
 	BME280::StandbyTime_1000ms,  // standby time
-	BME280::Filter_2,  // filter
+	BME280::Filter_Off,  // filter
+	// BME280::Filter_2,  // filter
 	BME280::SpiEnable_False,  // spi interface
 	BME280I2C::I2CAddr_0x76 // I2C address. I2C specific.
 );

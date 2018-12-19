@@ -29,6 +29,8 @@
 #define PASS3 "newdimigo"
 #define SSID4 "DimiFi_2G"
 #define PASS4 "newdimigo"
+#define SSID5 "DimiFi 4G1"
+#define PASS5 "newdimigo"
 
 
 WiFiMulti WiFiMulti;
@@ -36,6 +38,7 @@ HTTPClient http;
 SSD1306 display(0x3c, 21, 22);
 
 void printInfo();
+int filter_okay(float val1, float val2, float newVal);
 
 
 void setup() {
@@ -62,11 +65,18 @@ void setup() {
 	WiFiMulti.addAP(SSID2, PASS2);
 	WiFiMulti.addAP(SSID3, PASS3);
 	WiFiMulti.addAP(SSID4, PASS4);
+	WiFiMulti.addAP(SSID5, PASS5);
 	Serial.print("Establishing WiFI connection");
+	uint16_t wifiCount = 0;
 	while(WiFiMulti.run() != WL_CONNECTED) {
 		// ESP.wdtFeed();  // uneccesary for ESP32
 		Serial.print(".");
 		delay(250);
+		wifiCount++;
+		if(wifiCount>60){
+			ESP.restart();  // WiFi connection takes too long
+			return;
+		}
 	}
 	Serial.print("\nWiFi Connected: ");
 	Serial.println(WiFi.SSID());
@@ -74,6 +84,16 @@ void setup() {
 	Serial.println(WiFi.localIP());
 	WiFi.printDiag(Serial);
 	Serial.println();
+
+	display.clear();
+	display.setFont(Open_Sans_Hebrew_Condensed_24);
+	display.setTextAlignment(TEXT_ALIGN_LEFT);
+	display.drawString(0, 0, "LoRa Gateway");
+	display.setFont(Open_Sans_Hebrew_Condensed_18);
+	display.setTextAlignment(TEXT_ALIGN_LEFT);
+	display.drawString(0, 26, "WiFi connected");
+	printInfo();
+	display.display();
 
 	SPI.begin(SCK,MISO,MOSI,SS);
 	LoRa.setPins(SS,RST,DI0);
@@ -101,13 +121,18 @@ int packetSize = 0;
 String pac_history="";
 
 uint32_t count_packnum = 0;
-uint8_t pac_NodeNum = 0;
+uint32_t count_packnum_a[6] = {0};
+uint8_t pac_NodeNum = 0, pac_okay = 1;
 float pac_dust, pac_temp, pac_hum, pac_pres = 0;
+
+float filt_dust[6][2] = {0.0};
+float filt_temp[6][2] = {0.0};
+float filt_hum[6][2] = {0.0};
+float filt_pres[6][2] = {0.0};
 
 void loop() {
 	packetSize = LoRa.parsePacket();
 	if (packetSize){  // if(non-zero) -> true
-		count_packnum ++;
 		Serial.println("\n\n=====");
 
 		packet ="";
@@ -122,6 +147,8 @@ void loop() {
 		Serial.print("RSSI: ");  Serial.println(String(LoRa.packetRssi(), DEC));
 
 		if(packet.startsWith("$") && packet.endsWith("$")){
+			pac_okay = 1;
+
 			String data="";
 			packet.replace("$", "");
 			data = packet.substring(0, packet.indexOf("#"));
@@ -138,56 +165,88 @@ void loop() {
 			packet = packet.substring(packet.indexOf("#")+1);
 			data = packet.substring(0, packet.indexOf("#"));
 			pac_pres = data.toFloat();
+			// data before filtering
 			Serial.print("pac_NodeNum: "); Serial.println(pac_NodeNum);
 			Serial.print("pac_dust: "); Serial.print(pac_dust); Serial.println("ug/m3");
 			Serial.print("pac_temperature: "); Serial.print(pac_temp); Serial.println("°C");
 			Serial.print("pac_humidity: "); Serial.print(pac_hum); Serial.println("% RH");
 			Serial.print("pac_pressure: "); Serial.print(pac_pres); Serial.println("Pa");
-
-			String temp = "";
-			temp = pac_NodeNum;
-			temp.concat(pac_history);
-			pac_history = temp;
-
-			if(pac_history.length()>16) {  pac_history = pac_history.substring(0, 16);  }
-			Serial.print("pac_history: "); Serial.println(pac_history);
-
-			display.clear();
-			display.setFont(Open_Sans_Hebrew_Condensed_18);
-			display.setTextAlignment(TEXT_ALIGN_RIGHT);
-			display.drawString(128, 0, "RSSI:" + String(LoRa.packetRssi(), DEC));
-			display.setFont(Open_Sans_Hebrew_Condensed_24);
-			display.setTextAlignment(TEXT_ALIGN_LEFT);
-			display.drawStringMaxWidth(0, 0, 64, String(count_packnum));
-			display.setFont(Open_Sans_Hebrew_Condensed_18);
-			display.setTextAlignment(TEXT_ALIGN_LEFT);
-			display.drawStringMaxWidth(0, 26, 128, pac_history);
-			printInfo();
-			display.display();
-
-			const char* webLink = "http://lora.cafe24app.com/get/?num=<NodeNum>&dust=<DUST>&temp=<TEMP>&humid=<HUM>&pres=<PRESS>&status=set&co2=<CO2>&batt=<BATT>";
-			String conLink = webLink;
-			conLink.replace("<NodeNum>", String(pac_NodeNum));
-			conLink.replace("<DUST>", String(pac_dust));
-			conLink.replace("<TEMP>", String(pac_temp));
-			conLink.replace("<HUM>", String(pac_hum));
-			conLink.replace("<PRESS>", String(pac_pres));
-			conLink.replace("&co2=<CO2>", "");
-			conLink.replace("&batt=<BATT>", "");
-			conLink.replace("<STATUS>", "200");
-
-			http.begin(conLink);
-			if (http.GET() == HTTP_CODE_OK) {
-				String payload = http.getString();
-				Serial.print("HTTP connection success: "); Serial.println(payload);
-			}else{
-				Serial.println("HTTP Connection Error");
+			
+			// data filtering
+			if(pac_NodeNum<0 || pac_NodeNum>16 || pac_dust<0 || pac_temp<=0 || pac_hum<=0 || pac_pres<=0){
+				Serial.println("!!!!! abnormal packet data - dropping !!!!!");
+				pac_okay=0;
 			}
-			http.end();
+
+			count_packnum_a[pac_NodeNum-1]++;
+
+			if(count_packnum>3 && count_packnum_a[pac_NodeNum-1]>3 && pac_okay == 1){
+				if(filter_okay(filt_temp[pac_NodeNum-1][0], filt_temp[pac_NodeNum-1][1], pac_temp)!=0 ) {  pac_okay = 0; Serial.println("INVALID temp, FILTER_OKAY!=0");  }
+				if(filter_okay(filt_hum[pac_NodeNum-1][0], filt_hum[pac_NodeNum-1][1], pac_hum)!=0 ) {  pac_okay = 0; Serial.println("INVALID hum, FILTER_OKAY!=0");  }
+				if(filter_okay(filt_pres[pac_NodeNum-1][0], filt_pres[pac_NodeNum-1][1], pac_pres)!=0 ) {  pac_okay = 0; Serial.println("INVALID pres, FILTER_OKAY!=0");  }
+			}
+
+			if(pac_okay == 1){
+				filt_dust[pac_NodeNum-1][0] = filt_dust[pac_NodeNum-1][1];
+				filt_dust[pac_NodeNum-1][1] = pac_dust;
+				filt_temp[pac_NodeNum-1][0] = filt_temp[pac_NodeNum-1][1];
+				filt_temp[pac_NodeNum-1][1] = pac_temp;
+				filt_hum[pac_NodeNum-1][0] = filt_hum[pac_NodeNum-1][1];
+				filt_hum[pac_NodeNum-1][1] = pac_hum;
+				filt_pres[pac_NodeNum-1][0] = filt_pres[pac_NodeNum-1][1];
+				filt_pres[pac_NodeNum-1][1] = pac_pres;
+				count_packnum ++;
+
+				String temp = "";
+				temp = pac_NodeNum;
+				temp.concat(pac_history);
+				pac_history = temp;
+
+				if(pac_history.length()>16) {  pac_history = pac_history.substring(0, 16);  }
+				Serial.print("pac_history: "); Serial.println(pac_history);
+
+				display.clear();
+				display.setFont(Open_Sans_Hebrew_Condensed_18);
+				display.setTextAlignment(TEXT_ALIGN_RIGHT);
+				display.drawString(128, 0, "RSSI:" + String(LoRa.packetRssi(), DEC));
+				display.setFont(Open_Sans_Hebrew_Condensed_24);
+				display.setTextAlignment(TEXT_ALIGN_LEFT);
+				display.drawStringMaxWidth(0, 0, 64, String(count_packnum));
+				display.setFont(Open_Sans_Hebrew_Condensed_18);
+				display.setTextAlignment(TEXT_ALIGN_LEFT);
+				display.drawStringMaxWidth(0, 26, 128, pac_history);
+				printInfo();
+				display.display();
+
+				const char* webLink = "http://lora.cafe24app.com/get/?num=<NodeNum>&dust=<DUST>&temp=<TEMP>&humid=<HUM>&pres=<PRESS>&status=set&co2=<CO2>&batt=<BATT>";
+				String conLink = webLink;
+				conLink.replace("<NodeNum>", String(pac_NodeNum));
+				conLink.replace("<DUST>", String(pac_dust));
+				conLink.replace("<TEMP>", String(pac_temp));
+				conLink.replace("<HUM>", String(pac_hum));
+				conLink.replace("<PRESS>", String(pac_pres));
+				conLink.replace("&co2=<CO2>", "");
+				conLink.replace("&batt=<BATT>", "");
+				conLink.replace("<STATUS>", "200");
+
+				http.begin(conLink);
+				if (http.GET() == HTTP_CODE_OK) {
+					String payload = http.getString();
+					Serial.print("HTTP connection success: "); Serial.println(payload);
+				}else{
+					Serial.println("HTTP Connection Error");
+					Serial.flush();
+					delay(50);
+					return;
+					// ESP.restart();
+				}
+				http.end();
+			}
 		}
 		Serial.println("=====\n");
 	}
 	
+	Serial.flush();
 	// delay(50);
 }
 
@@ -210,5 +269,24 @@ void printInfo(){
 		
 		default:
 			break;
+	}
+}
+
+int filter_okay(float val1, float val2, float newVal){
+	val1 = val1<0?val1*(-1):val1;
+	val2 = val2<0?val2*(-1):val2;
+	newVal = newVal<0?newVal*(-1):newVal;
+
+	float val_mean = (val1 + val2)/2;
+	val_mean = val_mean<0?val_mean*(-1):val_mean;
+
+	if(val_mean*(0.5) >= newVal){
+		Serial.println("Catch1");
+		return 10;  // not okay
+	}else if(val_mean*(1.5) <= newVal){
+		Serial.println("Catch2");
+		return 10;
+	}else{
+		return 0;  // okay
 	}
 }
