@@ -13,6 +13,9 @@ let connection = mysql.createConnection({
     database: 'Maker_LoRa'
 })
 
+
+function pad2(n) { return n < 10 ? '0' + n : n }
+
 //connection.connect();
 app.use(express.static('public'));
 
@@ -30,14 +33,20 @@ app.get('/get/', (req, res) => {
         res.end("err")
     }
     else{
-        let params = [500,Number(parsedobj.num),parseFloat(parsedobj.temp),parseFloat(parsedobj.humid),parseFloat(parsedobj.dust),0.0,parseFloat(parsedobj.pres),100,(new Date().yyyymmdd())+(time_format(new Date()))];
-        connection.query(sqlquery,params, function (error, results, fields) {
-            if (error) {
-                console.log(error);
-            }
-            else{
-                console.log('Success!');
-            }
+        var date = new Date();
+
+        let params = [500,Number(parsedobj.num),parseFloat(parsedobj.temp),parseFloat(parsedobj.humid),parseFloat(parsedobj.dust),0.0,parseFloat(parsedobj.pres),100,date.getFullYear().toString() + pad2(date.getMonth() + 1) + pad2( date.getDate()) + pad2( date.getHours() ) + pad2( date.getMinutes() ) + pad2( date.getSeconds() )];
+        setTimeout(()=>{
+            connection.query(sqlquery,params, function (error, results, fields) {
+                if (error) {
+                    console.log(error);
+                }
+                else{
+                    console.log('Success!');
+                }
+
+        },1000)
+        
     });
     res.end('ACK');
 
@@ -53,7 +62,7 @@ app.get('/get/', (req, res) => {
 
 app.get('/',(req,res)=>{
 
-    let sqlquery = 'SELECT * FROM data';
+    
     fs.readFile("index.html", function (error, pgResp) {
         if (error) {
             console.log(error)
@@ -76,24 +85,92 @@ app.get('/bob/',(req,res)=>{
     })
 
 })
+app.get('/office/',(req,res)=>{
+
+    fs.readFile("office.html", function (error, pgResp) {
+        if (error) {
+            console.log(error)
+            res.writeHead(404);
+            res.write('Contents you are looking are Not Found');
+        } else {
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.write(pgResp);
+        }
+        res.end();
+    });
+})
+
+app.get('/complain/',(req,res)=>{
+
+    let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+    parsedobj = url.parse(fullUrl);
+    parsedobj = querystring.parse(parsedobj.query);
+
+    if(parsedobj.status == 'teacher'){
+        let sqlquery = "SELECT * FROM `request` ORDER BY idx DESC LIMIT 5";
+
+        connection.query(sqlquery, function (error, results, fields) {
+            if (error) {
+                console.log(error);
+            }
+            else{
+                res.send(results)
+                res.end('');
+            }
+        });
+
+    }
+    else{
+        let sqlquery = 'INSERT INTO `request` (`cless`, `content`) VALUES (?,?)';
+        let param = [parsedobj.cless,parsedobj.content];
+        connection.query(sqlquery,param, function (error, results, fields) {
+            if (error) {
+                console.log(error);
+            }
+            else{
+                
+                res.end('성공적으로 잘 전송되었습니다.');
+            }
+        });
+
+    }
+    
+})
 
 app.get('/graph/',(req,res)=>{
     let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
     parsedobj = url.parse(fullUrl);
     parsedobj = querystring.parse(parsedobj.query);
     let cless = parsedobj.class[0]
-    date = new Date().yyyymmdd();
-    let sqlquery = "SELECT * FROM `data` WHERE `data_num`="+cless+" AND `timeforme` LIKE ?";
+    if(cless != "a"){
+        date = new Date().yyyymmdd();
+        let sqlquery = "SELECT * FROM `data` WHERE `data_num`="+cless+" AND `timeforme` LIKE ? ORDER BY idx DESC LIMIT 400";
+        
+        connection.query(sqlquery,String(date) + '%', function (error, results, fields) {
+            if (error) {
+                console.log(error);
+            }
+            else{
+                res.send(results)
+                res.end('');
+            }
+        });
+    }
+    else{
+        date = new Date().yyyymmdd();
+        let sqlquery = "SELECT * FROM `data` WHERE `timeforme` LIKE ? ORDER BY idx DESC LIMIT 400";
+        
+        connection.query(sqlquery,String(date) + '%', function (error, results, fields) {
+            if (error) {
+                console.log(error);
+            }
+            else{
+                res.send(results)
+                res.end('');
+            }
+        });
+    }
     
-    connection.query(sqlquery,String(date) + '%', function (error, results, fields) {
-        if (error) {
-            console.log(error);
-        }
-        else{
-            res.send(results)            
-            res.end('');
-        }
-    });
 })
 
 

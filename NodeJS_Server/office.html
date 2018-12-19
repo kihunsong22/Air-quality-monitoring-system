@@ -314,6 +314,169 @@ body{
         }
     
 </script>
+<style>
+    
+.table-fill {
+    background: white;
+    border-radius:3px;
+    border-collapse: collapse;
+    height: 320px;
+    
+    
+    padding:5px;
+    width: 100%;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    animation: float 5s infinite;
+  }
+   
+  th {
+    color:#D5DDE5;;
+    background:#1b1e24;
+    border-bottom:4px solid #9ea7af;
+    border-right: 1px solid #343a45;
+    font-size:23px;
+    font-weight: 100;
+    padding:24px;
+    text-align:left;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    vertical-align:middle;
+  }
+  
+  th:first-child {
+    border-top-left-radius:3px;
+  }
+   
+  th:last-child {
+    border-top-right-radius:3px;
+    border-right:none;
+  }
+    
+  tr {
+    border-top: 1px solid #C1C3D1;
+    border-bottom: 1px solid #C1C3D1;
+    color:#666B85;
+    font-size:16px;
+    font-weight:normal;
+    text-shadow: 0 1px 1px rgba(256, 256, 256, 0.1);
+  }
+   
+  tr:hover td {
+    background:#4E5066;
+    color:#FFFFFF;
+    border-top: 1px solid #22262e;
+  }
+   
+  tr:first-child {
+    border-top:none;
+  }
+  
+  tr:last-child {
+    border-bottom:none;
+  }
+   
+  tr:nth-child(odd) td {
+    background:#EBEBEB;
+  }
+   
+  tr:nth-child(odd):hover td {
+    background:#4E5066;
+  }
+  
+  tr:last-child td:first-child {
+    border-bottom-left-radius:3px;
+  }
+   
+  tr:last-child td:last-child {
+    border-bottom-right-radius:3px;
+  }
+   
+  td {
+    background:#FFFFFF;
+    padding:20px;
+    text-align:left;
+    vertical-align:middle;
+    font-weight:300;
+    font-size:18px;
+    text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
+    border-right: 1px solid #C1C3D1;
+  }
+  
+  td:last-child {
+    border-right: 0px;
+  }
+  
+  th.text-left {
+    text-align: left;
+  }
+  
+  th.text-center {
+    text-align: center;
+  }
+  
+  th.text-right {
+    text-align: right;
+  }
+  
+  td.text-left {
+    text-align: left;
+  }
+  
+  td.text-center {
+    text-align: center;
+  }
+  
+  td.text-right {
+    text-align: right;
+  }
+  
+</style>
+
+
+<div id="chat" class = "bob_cotain">
+        <div>
+            <p class = "bobtitle">행정실 문의</p>
+            <table class="table-fill">
+                    <thead>
+                    <tr>
+                    <th class="text-left">내용</th>
+                    <th class="text-left">반</th>
+                    </tr>
+                    </thead>
+                    <tbody class="table-hover">
+                    <tr>
+                    <td class="text-left">January</td>
+                    <td class="text-left">$ 50,000.00</td>
+                    </tr>
+                    
+                    
+                    </tbody>
+                    </table>
+        </div>
+    </div>
+
+    <script>
+        
+        var req = new XMLHttpRequest();
+        req.open('GET', 'http://localhost:8002/complain?status=teacher', true);
+        req.onreadystatechange = function (aEvt) {
+        if (req.readyState === 4) {
+            if(req.status === 200){
+            
+                let response = JSON.parse("[" + req.response + "]")[0];
+                console.log(response)
+            
+        
+            }
+            else{
+                console.log("Error loading page\n");
+            }
+        }
+        };
+        req.send(null);
+
+                    
+    </script>
+
 
     <div id="container">
         <div class = "containerHeader">
@@ -583,118 +746,8 @@ body{
     }
 
   
-    </style>
-        <div id="chat" class = "bob_cotain">
-            <div>
-                <p class = "bobtitle">행정실에 연락</p>
-                <input type="text" name="content" id="content">
-                <button id = "buttonSubmit" class = "buttonSubmit">전송</button>
-                <select class="select" name="selectClass" id="selectClass">
-                    <option class = "option" value="1">1반</option>
-                    <option class = "option" value="2">2반</option>
-                    <option class = "option" value="3">3반</option>
-                    <option class = "option" value="4">4반</option>
-                </select>
-            </div>
-        </div>
-
-        <script>
-            document.getElementById('buttonSubmit').addEventListener('click',()=>{
-
-                let b = document.getElementById('selectClass');
-            let selectedClass = b[b.selectedIndex].value;
-            let contents = document.getElementById('content').value;
-            console.log('http://localhost:8002/complain?cless='+selectedClass+'&content='+contents)
-            
-                var req = new XMLHttpRequest();
-            req.open('GET', 'http://localhost:8002/complain?cless='+selectedClass+'&content='+contents, true);
-            req.onreadystatechange = function (aEvt) {
-            if (req.readyState === 4) {
-                if(req.status === 200){
-                
-                    let message = req.response;
-                    console.log(message)
-                    alert(message);
-                    location.reload();
-            
-                }
-                else{
-                    console.log("Error loading page\n");
-                }
-            }
-            };
-            req.send(null);
-
-            
-
-
-            })
-                        
-        </script>
-    <div>
-        
-        <div id="Bobcontainer" class = "bob_cotain">
-            <div>
-                
-                <p class = "bobtitle">오늘의 급식</p>
-                <p id= 'breakfast' class='bob'></p>
-                <p id= 'lunch' class='bob'></p>
-                <p id= 'dinner' class='bob'></p>
-
-            </div>
-        </div>
-    </div>
-
-
-
-    <script>
-        
-        
+    </style>   
     
-        var req = new XMLHttpRequest();
-        req.open('GET', 'http://localhost:8002/bob', true);
-        req.onreadystatechange = function (aEvt) {
-        if (req.readyState === 4) {
-            if(req.status === 200){
-                try{
-                    let bobObject = JSON.parse(req.response)
-                    document.getElementById('breakfast').innerText = "아침: "+bobObject.breakfast
-                    document.getElementById('lunch').innerText = "점심: "+bobObject.lunch
-                    document.getElementById('dinner').innerText ="저녁: "+ bobObject.dinner
-           
-                }
-                catch(err){
-
-                    document.getElementById('breakfast').innerText = "잠시 후 다시 시도해 주세요."
-                    document.getElementById('lunch').innerText = "잠시 후 다시 시도해 주세요."
-                    document.getElementById('dinner').innerText ="잠시 후 다시 시도해 주세요."
-                    
-                }
-                
-            }
-            else{
-                console.log("Error loading page\n");
-            }
-        }
-        };
-        req.send(null);
-        
-    </script>
-    
-    <!--########################## !-->
-
-    <!--########################## !-->
-    </div>
-    <div id="container">
-            <p class = "bobtitle">수능 타이머</p>
-            <div id = "timerFrame" class = "timerFrame">
-                    <iframe src="http://test1.seungyeon.xyz/test/2020suneung.html" style="width:365px; height:88px; border:0;"></iframe>
-                    <iframe src="http://test1.seungyeon.xyz/test/2021suneung.html" style="width:365px; height:88px; border:0;"></iframe>
-                </div>
-
-    </div>
-       
-    </div>
     <!--########################## !-->
 <br><br><br>
 </body>
