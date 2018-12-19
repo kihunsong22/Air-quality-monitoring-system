@@ -144,7 +144,7 @@ app.get('/graph/',(req,res)=>{
     let cless = parsedobj.class[0]
     if(cless != "a"){
         date = new Date().yyyymmdd();
-        let sqlquery = "SELECT * FROM `data` WHERE `data_num`="+cless+" AND `timeforme` LIKE ? ORDER BY idx DESC LIMIT 400";
+        let sqlquery = "SELECT * FROM `data` WHERE `data_num`="+cless+" AND `timeforme` LIKE ? ORDER BY idx DESC LIMIT 200";
         
         connection.query(sqlquery,String(date) + '%', function (error, results, fields) {
             if (error) {

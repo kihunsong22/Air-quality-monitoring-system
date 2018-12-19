@@ -148,10 +148,7 @@ body{
                 <li><button class = "button" onclick="graphClick(this.innerText)">2반</button>></li>
                 <li><button class = "button" onclick="graphClick(this.innerText)">3반</button>></li>
                 <li><button class = "button" onclick="graphClick(this.innerText)">4반</button>></li>
-                <li id="products">Extra</li>
-                <li><a href="#chat" style = "color:#b8bad4;">행정실에 연락</a></li>
-                <li><a href="#Bobcontainer">오늘의 급식</a></li>
-                <li><a href="#timerFrame">수능 타이머</a></li>
+                
                 
                 </ul>
             </nav>
@@ -407,6 +404,8 @@ body{
   
   th.text-left {
     text-align: left;
+    width: 80%;
+
   }
   
   th.text-center {
@@ -434,19 +433,16 @@ body{
 
 <div id="chat" class = "bob_cotain">
         <div>
-            <p class = "bobtitle">행정실 문의</p>
+            <p class = "bobtitle">최근 행정실 문의내역</p>
             <table class="table-fill">
                     <thead>
                     <tr>
                     <th class="text-left">내용</th>
                     <th class="text-left">반</th>
+                    
                     </tr>
                     </thead>
-                    <tbody class="table-hover">
-                    <tr>
-                    <td class="text-left">January</td>
-                    <td class="text-left">$ 50,000.00</td>
-                    </tr>
+                    <tbody class="table-hover" id ='tableContent'>
                     
                     
                     </tbody>
@@ -455,7 +451,28 @@ body{
     </div>
 
     <script>
-        
+
+        function putTable(index,data){
+            if(index == data.length-1){
+                
+                return
+            }
+            
+            let n = document.getElementById('tableContent');
+            let a = document.createElement('tr');
+            let b = document.createElement('td');
+            let c = document.createElement('td');
+            b.setAttribute('class','text-left')
+            c.setAttribute('class','text-left')
+            b.innerText = data[index].content;
+            c.innerText = data[index].cless;
+
+            a.appendChild(b)
+            a.appendChild(c)
+            n.appendChild(a)
+            return putTable(index+1,data)
+            
+        }
         var req = new XMLHttpRequest();
         req.open('GET', 'http://localhost:8002/complain?status=teacher', true);
         req.onreadystatechange = function (aEvt) {
@@ -463,8 +480,11 @@ body{
             if(req.status === 200){
             
                 let response = JSON.parse("[" + req.response + "]")[0];
-                console.log(response)
-            
+                let myNode = document.getElementById("tableContent");
+                while (myNode.firstChild) {
+                    myNode.removeChild(myNode.firstChild);
+                }
+                putTable(0,response);
         
             }
             else{
@@ -473,6 +493,31 @@ body{
         }
         };
         req.send(null);
+
+        setInterval(()=>{
+            var req = new XMLHttpRequest();
+            req.open('GET', 'http://localhost:8002/complain?status=teacher', true);
+            req.onreadystatechange = function (aEvt) {
+            if (req.readyState === 4) {
+                if(req.status === 200){
+                
+                    let response = JSON.parse("[" + req.response + "]")[0];
+                    let myNode = document.getElementById("tableContent");
+                    while (myNode.firstChild) {
+                        myNode.removeChild(myNode.firstChild);
+                    }
+                    putTable(0,response);
+            
+                }
+                else{
+                    console.log("Error loading page\n");
+                }
+            }
+            };
+            req.send(null);
+    
+
+        },5000)
 
                     
     </script>

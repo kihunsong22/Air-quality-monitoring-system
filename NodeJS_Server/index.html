@@ -604,6 +604,10 @@ body{
                 let b = document.getElementById('selectClass');
             let selectedClass = b[b.selectedIndex].value;
             let contents = document.getElementById('content').value;
+            d = new Date();
+            datetext = d.toTimeString();
+            datetext = datetext.split(' ')[0];
+            contents = contents + '      ' +datetext;
             console.log('http://localhost:8002/complain?cless='+selectedClass+'&content='+contents)
             
                 var req = new XMLHttpRequest();
