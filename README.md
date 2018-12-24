@@ -4,10 +4,12 @@ Air quality monitoring system based on LoRa and Node.JS
 LoRa통신과 Node.JS를 활용한 공기질 관리 시스템입니다.
 
 ![LoRa_modules](Pictures/Pic6.jpg)
+
 LoRa 센서 노드 5개와 LoRa게이트웨이
 
 
 ![LoRa_modules](Pictures/Server1.png)
+
 센서값을 실시간으로 확인가능한 Node.JS 기반의 웹서비스
 
 
