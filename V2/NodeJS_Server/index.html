@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LoRa Maker Project</title>
+    <link rel="stylesheet" href="data/style.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+
+            #nav-btn{
+                fill:white;
+                height:40px;
+                position:absolute;
+                right:10px;
+                top:7px;
+                display:none;
+              }
+              .vertical-line{
+                  margin-top:30px;
+                  margin-bottom:30px;
+                  width: 170px;
+                  border-bottom:#F7F7F7 4px solid;
+                      background-color: #3EACA8;
+              }
+              
+aside{
+    position: relative;
+	float:left;
+	width:205px;
+	padding-top:30px;
+	padding-left:15px;
+	top:0;
+	bottom:0;
+    background-color: #0e0c28;
+    
+}
+
+nav{
+    display:block;
+  }
+  
+
+nav ul li a{
+    line-height:30px;
+    color:#b8bad4;
+    transition: ease all 1s;
+    font-weight: bold;
+}
+
+nav ul li{
+    line-height:30px;
+    color:#b8bad4;
+    text-align: center;
+    transition: ease all 1s;
+    margin-top: 10px;
+    
+}
+
+nav ul li:hover{
+    background-color: #242849;
+	color:white;
+}
+nav ul li a:hover{
+    background-color: #242849;
+	color:white;
+}
+
+#products{
+	padding-top:40px;
+	font-weight:bold;
+	color:#F7F7F7;
+}
+
+@media (max-width: 730px) {
+
+  aside{
+		float:left;
+		width:95%;
+		position:relative;
+		float:left;
+		padding-top: 10px;
+		padding-bottom:10px;
+	}
+	header{
+		float:left;
+		position:relative;
+		width:95%;
+		padding-left:5%;
+	}
+	nav{
+	  display:none;
+  }
+  #nav-btn{
+    fill:white;
+    height:40px;
+    width:40px;
+    position:absolute;
+    right:7px;
+    top:7px;
+    display:block;
+    cursor: pointer;
+  }
+	
+	.vertical-line {
+		margin-top: 20px;
+		margin-bottom: 20px;
+    display:none;
+	}
+	#products {
+		padding-top: 0;
+	}
+	article{
+		float:left;
+		width:90%;
+		margin-left: 5%;
+		margin-right: 5%;
+		padding-top:50px;
+	}
+}
+nav>ul{
+    color:white;
+}
+aside>h1{
+    font-size: 20px;
+}
+body{
+    background-color:#efeff6;
+}
+
+#left-menu{
+    float:left;z-index: 999;position: relative; transition:all 1s ease;
+}
+            
+       
+    </style>
+</head>
+<body>
+        <div id="nav">
+                <img src="data/aperture_official_logo_wtext_white_.png" alt="aperture logo" height="30px">
+            </div>
+        <aside id="left-menu">
+            
+            <h1 style = "color:white;">Menu</h1>
+            <br>
+            <nav>
+                <ul>
+                <li><button class = "button" onclick="graphClick(this.innerText)">1반</button>></li>
+                <li><button class = "button" onclick="graphClick(this.innerText)">2반</button>></li>
+                <li><button class = "button" onclick="graphClick(this.innerText)">3반</button>></li>
+                <li><button class = "button" onclick="graphClick(this.innerText)">4반</button>></li>
+                <li id="products">Extra</li>
+                <li><a href="#chat" style = "color:#b8bad4;">행정실에 연락</a></li>
+                <li><a href="#Bobcontainer">오늘의 급식</a></li>
+                <li><a href="#timerFrame">수능 타이머</a></li>
+                
+                </ul>
+            </nav>
+            
+            <div class="vertical-line"></div>
+            
+            </aside>
+            <script>
+                    let prop = document.getElementById('left-menu');
+                    window.addEventListener('scroll', function() {
+                         setTimeout(()=>{
+                         prop.style.top = String(window.scrollY)+'px';
+                        },10);
+                    });
+            </script>
+
+    
+
+    <!--########################## !-->
+    <style>
+        .graph{
+            display: inline-block;
+            width: 49%;
+            height: 400px;
+        }
+        .weakFont{
+            margin-top: 10px;
+            font-size: 13px;
+            color: grey;
+            padding-left: 17%;
+        }
+        .smallgraph{
+            
+            display: inline-block;
+            width: 20%;
+            height: 300px;
+            margin-left: 14px;
+            background-color: white;
+            border-radius: 3px;
+            box-shadow: lightgrey 0px 0px 5px;
+        }
+    </style>
+    
+
+        
+        <h2 style = " color:#242849;display:inline-block; margin-left:30px;margin-bottom: 10px; ">각 반 공기질 현황</h2>
+        <div style="color:#242849;display:inline-block; width: 80%; margin-left:30px; height:0.5px; border:lightgrey solid 1px; background-color:lightgrey"></div>
+        <div class="weakFont">각 반 공기질 현황 > <b> 온도</b></div>
+
+        <br><br>
+        
+        <div id="graph">
+            <div id = row>
+            <div class = 'smallgraph' id="c1"></div>
+            <div class = 'smallgraph' id="c2"></div>
+            <div class = 'smallgraph' id="c3"></div>
+            <div class = 'smallgraph' id="c4"></div>
+
+            </div>
+        </div>
+    
+<script>
+    setInterval(()=>{smallGraph()},5000)
+
+        function smallGraph(){
+            let req = new XMLHttpRequest();
+            req.open('GET', 'http://localhost:8002/graph/?class=absolute', true);
+            req.onreadystatechange = function (aEvt) {
+            if (req.readyState === 4) {
+                if(req.status === 200){
+                    let temp1 = [];
+                    let temp2 = [];
+                    let temp3 = [];
+                    let temp4 = [];
+
+                    let time = [];
+                    let flag = 0;
+                    let array = JSON.parse("[" + req.response + "]")[0];
+                    
+                    array.forEach((element,index) => {            
+                        if(element.data_temp<=0||element.data_humid<=0){
+                        }
+                        else{
+                            switch(element.data_num){
+                             case 1:
+                             temp1.push(element.data_temp)
+                                break;
+                             case 2:
+                             temp2.push(element.data_temp)
+                             break;
+                             case 3:
+                             temp3.push(element.data_temp)
+                             break;
+                             case 4:
+                             temp4.push(element.data_temp)
+                             break;                               
+                            }
+                            
+                            time.push(Number(element.timeforme.substr(8,6))) 
+                        }
+                        
+                        if(index == array.length-1){
+                            
+                            flag = 1
+                        }
+                    });
+                     
+                    let temp = setInterval(()=>{
+                        if(flag){
+                            
+                            drawsmallGraph(temp1,temp2,temp3,temp4,time);
+                            
+                            clearInterval(temp)
+                        }
+                        
+                    },100)
+                }
+                else{
+                    console.log("Error loading page\n");
+                }
+            }
+            };
+            req.send(null);
+
+
+            
+            
+        }
+        let classDict = {
+            "c1":"1반",
+            "c2":"2반",
+            "c3":"3반",
+            "c4":"4반"
+        };
+
+        function drawsmallGraph(temp1,temp2,temp3,temp4,time){
+            temporaryGraph(temp1,time,"c1")
+            temporaryGraph(temp2,time,"c2")
+            temporaryGraph(temp3,time,"c3")
+            temporaryGraph(temp4,time,"c4")
+        }
+        function temporaryGraph(d,t,str){
+            
+            let trace = {
+                x: t,
+                y: d,
+                mode: 'area'
+            };
+            let data = [ trace ];
+            let layout = {
+                title:classDict[str],
+                xaxis:{
+                    zeroline: false
+                },
+                yaxis: {
+                    zeroline: false
+                }
+            };
+            Plotly.newPlot(str, data, layout);
+        }
+    
+</script>
+
+    <div id="container">
+        <div class = "containerHeader">
+            <b>대시보드</b>
+        </div>
+        <hr>
+        <div>
+            <div id="graphHeader" class="graphHeader">&lt; 1반 &gt;</div>
+        </div>
+        <hr>
+        <br><br>
+        
+        <div id="graph">
+            <div id = row>
+            <div class = 'graph' id="temp"></div>
+                
+            <div class = 'graph' id="hmd"></div>
+            
+            <div class = 'graph' id="dust"></div>
+            <div class = 'graph' id="pres"></div>
+            
+        </div>
+            
+            
+    </div>
+
+        
+    </div>
+
+
+    <script>
+        drawGraph(document.cookie)
+        setInterval(()=>{drawGraph(document.cookie)},5000)
+
+        function graphClick(cless){
+            document.getElementById('graphHeader').innerText = "< "+cless+" >"
+            document.cookie = cless;
+            drawGraph(document.cookie)
+        }
+        if(document.cookie){
+            document.getElementById('graphHeader').innerText = "< "+document.cookie+" >"
+        }
+
+        
+        function drawGraph(cless){
+            console.log(cless)
+            let req = new XMLHttpRequest();
+            req.open('GET', 'http://localhost:8002/graph/?class='+cless, true);
+            req.onreadystatechange = function (aEvt) {
+            if (req.readyState === 4) {
+                if(req.status === 200){
+                    let dustD = [];
+                    let tempD = [];
+                    let humidD = [];
+                    let time = [];
+                    let presD = [];
+                    
+                    let flag = 0;
+                    let array = JSON.parse("[" + req.response + "]")[0];
+                    
+                    array.forEach((element,index) => {            
+                        if(element.data_temp<=0||element.data_humid<=0){
+                        }
+                        else{
+                            dustD.push(element.data_dust)
+                            tempD.push(element.data_temp)
+                            humidD.push(element.data_humid)
+                            presD.push(element.data_pres)
+                            
+                        
+                        time.push(Number(element.timeforme.substr(8,6))) 
+                        
+
+                        }
+                        
+                        if(index == array.length-1){
+                            
+                            flag = 1
+                        }
+                    });
+                     
+                    let temp = setInterval(()=>{
+                        if(flag){
+                            dustGraph(dustD,time);
+                            tempGraph(tempD,time);
+                            humidGraph(humidD,time);
+                            presGraph(presD,time);
+                            
+                            clearInterval(temp)
+                        }
+                        
+                    },100)
+                }
+                else{
+                    console.log("Error loading page\n");
+                }
+            }
+            };
+            req.send(null);
+
+
+            
+            
+        }
+        function dustGraph(dust_data,time){
+
+            let trace = {
+                x: time,
+                y: dust_data,
+                mode: 'area'
+            };
+            let data = [ trace ];
+            let layout = {
+                title:'먼지'
+            };
+            
+            Plotly.newPlot('dust', data, layout);
+
+        }
+
+
+        function tempGraph(temp_data,time){
+
+            let trace = {
+                x: time,
+                y: temp_data,
+                mode: 'area'
+            };
+            let data = [ trace ];
+            let layout = {
+                title:'온도',
+                xaxis:{
+                    zeroline: false
+                },
+                yaxis: {
+                    zeroline: false
+                }
+            };
+            Plotly.newPlot('temp', data, layout);
+        }
+        function humidGraph(humid_data,time){
+
+            let trace = {
+                x: time,
+                y: humid_data,
+                mode: 'area'
+            };
+            let data = [ trace ];
+            let layout = {
+                title:'습도'
+            };
+            Plotly.newPlot('hmd', data, layout);
+
+        }
+
+        function presGraph(pres_data,time){
+
+            let trace = {
+                x: time,
+                y: pres_data,
+                mode: 'area'
+            };
+            let data = [ trace ];
+            let layout = {
+                title:'기압'
+            };
+            
+            Plotly.newPlot('pres', data, layout);
+
+        }
+
+        
+    </script>
+<!-- 
+    let a=  {
+        idx: 8,
+        timestamp: "2018-12-17T01:57:34.000Z",
+        debug: 404,
+        data_num: 2,
+        data_temp: 1,
+        data_dust: 1,
+        data_co2: 1,
+        data_pres: 1,
+        data_batt: 1,
+        timeforme: '20181217' } -->
+    <!--########################## !-->
+
+    <div>
+    
+        
+
+
+        
+    </div>
+    <style>
+        
+.select {
+    display:flex;
+    flex-direction: column;
+    position: relative;
+    width: 49px;
+    height: 28px;
+    border-radius: 5px;
+    font-size: 16px;
+    float: right;
+    margin-top: 10px;
+    
+    margin-right: 42px;
+  }
+  
+  .option {
+    
+    min-height:40px;
+    display:flex;
+    align-items:center;
+    background:white;
+    border-top:#222 solid 1px;
+    position:absolute;
+    top:0;
+    width: 100%;
+    pointer-events:none;
+    order:2;
+    z-index:1;
+    transition: all 2s ease-in-out;
+    box-sizing:border-box;
+    overflow:hidden;
+    white-space:nowrap;
+    
+    
+  }
+  
+  .option:hover {
+    background:lightgrey;
+  }
+  
+  .select:focus .option {
+    position:relative;
+    pointer-events:all;
+  }
+  #content{
+    width: 80%;
+    margin: 10px;
+    height: 24px;
+    font-size: 15px;
+    
+}
+    .buttonSubmit{
+        float:right;
+        background: aliceblue;
+    border: none;
+    border-radius: 5px;
+    display: inline-block;
+    width: 63px;
+    height: 42px;
+    margin-top: 3px;
+    cursor:pointer;
+    transition: ease all 1s;
+    box-shadow: lightgrey 0px 0px 5px;
+
+    }
+    .buttonSubmit:hover{
+        
+        background: black;
+        color:white;
+   
+
+    }
+
+  
+    </style>
+        <div id="chat" class = "bob_cotain">
+            <div>
+                <p class = "bobtitle">행정실에 연락</p>
+                <input type="text" name="content" id="content">
+                <button id = "buttonSubmit" class = "buttonSubmit">전송</button>
+                <select class="select" name="selectClass" id="selectClass">
+                    <option class = "option" value="1">1반</option>
+                    <option class = "option" value="2">2반</option>
+                    <option class = "option" value="3">3반</option>
+                    <option class = "option" value="4">4반</option>
+                </select>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('buttonSubmit').addEventListener('click',()=>{
+
+                let b = document.getElementById('selectClass');
+            let selectedClass = b[b.selectedIndex].value;
+            let contents = document.getElementById('content').value;
+            d = new Date();
+            datetext = d.toTimeString();
+            datetext = datetext.split(' ')[0];
+            contents = contents + '      ' +datetext;
+            console.log('http://localhost:8002/complain?cless='+selectedClass+'&content='+contents)
+            
+                var req = new XMLHttpRequest();
+            req.open('GET', 'http://localhost:8002/complain?cless='+selectedClass+'&content='+contents, true);
+            req.onreadystatechange = function (aEvt) {
+            if (req.readyState === 4) {
+                if(req.status === 200){
+                
+                    let message = req.response;
+                    console.log(message)
+                    alert(message);
+                    location.reload();
+            
+                }
+                else{
+                    console.log("Error loading page\n");
+                }
+            }
+            };
+            req.send(null);
+
+            
+
+
+            })
+                        
+        </script>
+    <div>
+        
+        <div id="Bobcontainer" class = "bob_cotain">
+            <div>
+                
+                <p class = "bobtitle">오늘의 급식</p>
+                <p id= 'breakfast' class='bob'></p>
+                <p id= 'lunch' class='bob'></p>
+                <p id= 'dinner' class='bob'></p>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        
+        
+    
+        var req = new XMLHttpRequest();
+        req.open('GET', 'http://localhost:8002/bob', true);
+        req.onreadystatechange = function (aEvt) {
+        if (req.readyState === 4) {
+            if(req.status === 200){
+                try{
+                    let bobObject = JSON.parse(req.response)
+                    document.getElementById('breakfast').innerText = "아침: "+bobObject.breakfast
+                    document.getElementById('lunch').innerText = "점심: "+bobObject.lunch
+                    document.getElementById('dinner').innerText ="저녁: "+ bobObject.dinner
+           
+                }
+                catch(err){
+
+                    document.getElementById('breakfast').innerText = "잠시 후 다시 시도해 주세요."
+                    document.getElementById('lunch').innerText = "잠시 후 다시 시도해 주세요."
+                    document.getElementById('dinner').innerText ="잠시 후 다시 시도해 주세요."
+                    
+                }
+                
+            }
+            else{
+                console.log("Error loading page\n");
+            }
+        }
+        };
+        req.send(null);
+        
+    </script>
+    
+    <!--########################## !-->
+
+    <!--########################## !-->
+    </div>
+    <div id="container">
+            <p class = "bobtitle">수능 타이머</p>
+            <div id = "timerFrame" class = "timerFrame">
+                    <iframe src="http://test1.seungyeon.xyz/test/2020suneung.html" style="width:365px; height:88px; border:0;"></iframe>
+                    <iframe src="http://test1.seungyeon.xyz/test/2021suneung.html" style="width:365px; height:88px; border:0;"></iframe>
+                </div>
+
+    </div>
+       
+    </div>
+    <!--########################## !-->
+<br><br><br>
+</body>
+</html>
