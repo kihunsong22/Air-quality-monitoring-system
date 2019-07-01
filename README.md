@@ -10,11 +10,12 @@ LoRa Sensor Node
 
 Node.JS Web Server
 
+Hardware is based on TTGO-LoRa V2 board. Sensor nodes utilize BME280 and GP2y1024AU0F sensor and send it to the gateway via LoRa. Gateway will then upload the sensor data to the server via WiFi.
 
-PCB를 비롯한 하드웨어는 TTGO LoRa V2보드를 기반으로 만들어졌습니다. 센서 노드는 BME280센서, GP2Y1023AU0F센서로부터 값을 읽어오고 게이트웨이에 값을 전송하며, 게이트웨이는 서버로 센서값을 올려서 DB에 추가하는 구조입니다.
+My system uses 4 sensor nodes and 1 gateway, but configurations can be changed
 
-### 수정사항
-1. PCB의 DIP스위치와 연결된 0번 핀은 CLX1로 2.7V가 유지되며, 3.3V로 끌어올릴 시 업로딩이 안되며, 2번 핀의 경우 LED핀으로 0번, 2번 모두 다음 버전에서 수정 필요
-1. PCB에서 GP2Y10 먼지센서가 PCB위에 올라갈 공간이 없으며 하단의 18650 배터리가 먼지센서의 구멍을 막음. 보드의 길이를 늘려야함
-1. PCB에서 테스트용인 3.3V 및 GND핀들의 위치 수정 필요
-1. 케이스에서 18650 홀더가 케이스와 충돌하여 길이를 늘려야함
+### To-Do
+1. CLX1 pin on the ESP32 which is connected to pin 0 of the DIP switch maintains 2.7V, and prevents uploading when pulled up to 3.3V. Pin 2 of ESP32 should be changed to pin 0 of ESP32 since it's connected to the board LED
+1. The PCB isn't long enough for the GP2Y10 dust sensor. And the 18650 battery blocks the hole for the sensor
+1. 3.3V -> 5V boost converter is necessary since the GP2Y10 sensor utilizes 5V.
+1. 3.3V and GND test pins should be moved to a different location
