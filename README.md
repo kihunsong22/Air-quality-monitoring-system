@@ -1,16 +1,14 @@
 # Air-quality-monitoring-system
 Air quality monitoring system based on LoRa and Node.JS
 
-LoRa통신과 Node.JS를 활용한 공기질 관리 시스템입니다.
+<!-- ![LoRa_modules](Pictures/V2_sensor.jpg | width=400) -->
+<img src="./Pictures/V2_sensor.jpg" width=300px>
 
-![LoRa_modules](Pictures/V2_sensor.jpg = 500x)
+LoRa Sensor Node
 
-LoRa 센서 노드
+<img src="./Pictures/V2_Server.jpg" width=300px>
 
-
-![LoRa_modules](Pictures/Server1.png)
-
-센서값을 실시간으로 확인가능한 Node.JS 기반의 웹서비스
+Node.JS Web Server
 
 
 PCB를 비롯한 하드웨어는 TTGO LoRa V2보드를 기반으로 만들어졌습니다. 센서 노드는 BME280센서, GP2Y1023AU0F센서로부터 값을 읽어오고 게이트웨이에 값을 전송하며, 게이트웨이는 서버로 센서값을 올려서 DB에 추가하는 구조입니다.
